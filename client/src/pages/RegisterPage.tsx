@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { ApiError } from '../lib/api';
 import ShaderCanvas from '../components/shared/ShaderCanvas';
 import './AuthPage.css';
@@ -8,6 +9,7 @@ import './AuthPage.css';
 const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
   const { register } = useAuth();
+  const { t } = useLanguage();
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -22,7 +24,7 @@ const RegisterPage: React.FC = () => {
     setError(null);
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match.');
+      setError(t.auth.passwordMismatch);
       return;
     }
 
@@ -46,17 +48,17 @@ const RegisterPage: React.FC = () => {
       <div className="auth-card glass-card subtle-shadow">
         <div className="auth-brand">
           <span className="material-symbols-outlined logo-icon">eco</span>
-          <span className="font-headline-md">Chat bot hỗ trợ các bác nông dân</span>
+          <span className="font-headline-md">{t.auth.brand}</span>
         </div>
 
-        <h1 className="font-display-lg-mobile auth-title">Create your account</h1>
-        <p className="font-body-md auth-subtitle">Start your journey with us</p>
+        <h1 className="font-display-lg-mobile auth-title">{t.auth.createAccountTitle}</h1>
+        <p className="font-body-md auth-subtitle">{t.auth.createAccountSubtitle}</p>
 
         {error && <div className="auth-error font-label-md">{error}</div>}
 
         <form className="auth-form" onSubmit={handleSubmit}>
           <label className="auth-field">
-            <span className="font-label-md field-label">Full name</span>
+            <span className="font-label-md field-label">{t.auth.fullName}</span>
             <input
               type="text"
               className="auth-input"
@@ -68,7 +70,7 @@ const RegisterPage: React.FC = () => {
           </label>
 
           <label className="auth-field">
-            <span className="font-label-md field-label">Email</span>
+            <span className="font-label-md field-label">{t.auth.email}</span>
             <input
               type="email"
               className="auth-input"
@@ -80,7 +82,7 @@ const RegisterPage: React.FC = () => {
           </label>
 
           <label className="auth-field">
-            <span className="font-label-md field-label">Password</span>
+            <span className="font-label-md field-label">{t.auth.password}</span>
             <div className="auth-input-wrapper">
               <input
                 type={showPassword ? 'text' : 'password'}
@@ -105,7 +107,7 @@ const RegisterPage: React.FC = () => {
           </label>
 
           <label className="auth-field">
-            <span className="font-label-md field-label">Confirm password</span>
+            <span className="font-label-md field-label">{t.auth.confirmPassword}</span>
             <input
               type={showPassword ? 'text' : 'password'}
               className="auth-input"
@@ -118,12 +120,12 @@ const RegisterPage: React.FC = () => {
           </label>
 
           <button type="submit" className="auth-submit-btn font-label-md" disabled={isSubmitting}>
-            {isSubmitting ? 'Creating account…' : 'Create account'}
+            {isSubmitting ? t.auth.creatingAccount : t.auth.createAccount}
           </button>
         </form>
 
         <p className="font-label-md auth-footer-text">
-          Already have an account? <Link to="/login">Sign in</Link>
+          {t.auth.alreadyHaveAccount} <Link to="/login">{t.auth.signInLink}</Link>
         </p>
       </div>
     </div>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { ApiError, changePassword } from '../../lib/api';
 import './ChangePasswordModal.css';
 
@@ -10,6 +11,7 @@ interface ChangePasswordModalProps {
 
 const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ onClose }) => {
   const { token } = useAuth();
+  const { t } = useLanguage();
 
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -24,7 +26,7 @@ const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ onClose }) =>
     setSuccessMessage(null);
 
     if (newPassword !== confirmPassword) {
-      setError('Mật khẩu mới không khớp.');
+      setError(t.passwordModal.mismatch);
       return;
     }
     if (!token) return;
@@ -32,12 +34,12 @@ const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ onClose }) =>
     setIsSubmitting(true);
     try {
       await changePassword(token, { old_password: oldPassword, new_password: newPassword });
-      setSuccessMessage('Đổi mật khẩu thành công.');
+      setSuccessMessage(t.passwordModal.success);
       setOldPassword('');
       setNewPassword('');
       setConfirmPassword('');
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Có lỗi xảy ra, thử lại sau.');
+      setError(err instanceof ApiError ? err.message : t.passwordModal.genericError);
     } finally {
       setIsSubmitting(false);
     }
@@ -47,8 +49,8 @@ const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ onClose }) =>
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-card" onClick={(event) => event.stopPropagation()}>
         <div className="modal-header">
-          <h2 className="font-headline-md">Đổi mật khẩu</h2>
-          <button type="button" className="modal-close-btn" onClick={onClose} aria-label="Đóng">
+          <h2 className="font-headline-md">{t.passwordModal.title}</h2>
+          <button type="button" className="modal-close-btn" onClick={onClose} aria-label={t.passwordModal.close}>
             <span className="material-symbols-outlined">close</span>
           </button>
         </div>
@@ -58,7 +60,7 @@ const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ onClose }) =>
 
         <form className="modal-form" onSubmit={handleSubmit}>
           <label className="modal-field">
-            <span className="font-label-md field-label">Mật khẩu cũ</span>
+            <span className="font-label-md field-label">{t.passwordModal.oldPassword}</span>
             <input
               type="password"
               className="modal-input"
@@ -69,7 +71,7 @@ const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ onClose }) =>
           </label>
 
           <label className="modal-field">
-            <span className="font-label-md field-label">Mật khẩu mới</span>
+            <span className="font-label-md field-label">{t.passwordModal.newPassword}</span>
             <input
               type="password"
               className="modal-input"
@@ -81,7 +83,7 @@ const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ onClose }) =>
           </label>
 
           <label className="modal-field">
-            <span className="font-label-md field-label">Xác nhận mật khẩu mới</span>
+            <span className="font-label-md field-label">{t.passwordModal.confirmNewPassword}</span>
             <input
               type="password"
               className="modal-input"
@@ -93,7 +95,7 @@ const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({ onClose }) =>
           </label>
 
           <button type="submit" className="modal-submit-btn font-label-md" disabled={isSubmitting}>
-            {isSubmitting ? 'Đang đổi...' : 'Đổi mật khẩu'}
+            {isSubmitting ? t.passwordModal.submitting : t.passwordModal.submit}
           </button>
         </form>
       </div>

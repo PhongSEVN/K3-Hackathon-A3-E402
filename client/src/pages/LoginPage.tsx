@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { ApiError } from '../lib/api';
 import ShaderCanvas from '../components/shared/ShaderCanvas';
 import './AuthPage.css';
@@ -8,6 +9,7 @@ import './AuthPage.css';
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { t } = useLanguage();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -39,17 +41,17 @@ const LoginPage: React.FC = () => {
       <div className="auth-card glass-card subtle-shadow">
         <div className="auth-brand">
           <span className="material-symbols-outlined logo-icon">eco</span>
-          <span className="font-headline-md">Chat bot hỗ trợ các bác nông dân</span>
+          <span className="font-headline-md">{t.auth.brand}</span>
         </div>
 
-        <h1 className="font-display-lg-mobile auth-title">Welcome back</h1>
-        <p className="font-body-md auth-subtitle">Sign in to continue</p>
+        <h1 className="font-display-lg-mobile auth-title">{t.auth.welcomeBack}</h1>
+        <p className="font-body-md auth-subtitle">{t.auth.signInSubtitle}</p>
 
         {error && <div className="auth-error font-label-md">{error}</div>}
 
         <form className="auth-form" onSubmit={handleSubmit}>
           <label className="auth-field">
-            <span className="font-label-md field-label">Email</span>
+            <span className="font-label-md field-label">{t.auth.email}</span>
             <input
               type="email"
               className="auth-input"
@@ -61,7 +63,7 @@ const LoginPage: React.FC = () => {
           </label>
 
           <label className="auth-field">
-            <span className="font-label-md field-label">Password</span>
+            <span className="font-label-md field-label">{t.auth.password}</span>
             <div className="auth-input-wrapper">
               <input
                 type={showPassword ? 'text' : 'password'}
@@ -86,12 +88,12 @@ const LoginPage: React.FC = () => {
           </label>
 
           <button type="submit" className="auth-submit-btn font-label-md" disabled={isSubmitting}>
-            {isSubmitting ? 'Signing in…' : 'Sign in'}
+            {isSubmitting ? t.auth.signingIn : t.auth.signIn}
           </button>
         </form>
 
         <p className="font-label-md auth-footer-text">
-          Don't have an account? <Link to="/register">Sign up</Link>
+          {t.auth.noAccount} <Link to="/register">{t.auth.signUp}</Link>
         </p>
       </div>
     </div>

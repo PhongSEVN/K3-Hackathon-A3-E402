@@ -3,11 +3,13 @@ import gsap from 'gsap';
 import ShaderCanvas from '../components/shared/ShaderCanvas';
 import PromptBar from '../components/shared/PromptBar';
 import ImageUploadPanel from '../components/shared/ImageUploadPanel';
+import { useLanguage } from '../context/LanguageContext';
 import './HomePage.css';
 
 const HomePage: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
-  
+  const { t } = useLanguage();
+
   useEffect(() => {
     if (containerRef.current) {
       const elements = containerRef.current.querySelectorAll('.animate-item');
@@ -27,7 +29,7 @@ const HomePage: React.FC = () => {
       <div className="home-content">
         <div className="greeting-section animate-item">
           <h1 className="font-display-lg greeting-title">
-            Hỗ trợ các bác nông dân tư vấn bệnh cây trồng!
+            {t.home.greeting}
           </h1>
         </div>
         

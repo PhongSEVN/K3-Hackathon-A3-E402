@@ -1,9 +1,11 @@
 import React, { useEffect, useRef } from 'react';
 import BentoCard from '../components/shared/BentoCard';
 import PromptBar from '../components/shared/PromptBar';
+import { useLanguage } from '../context/LanguageContext';
 import './ExplorePage.css';
 
 const ExplorePage: React.FC = () => {
+  const { t } = useLanguage();
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -28,10 +30,11 @@ const ExplorePage: React.FC = () => {
   return (
     <div className="explore-page" ref={containerRef}>
       <section className="hero-section">
-        <h1 className="font-display-lg text-on-surface">Meet Chat bot hỗ trợ các bác nông dân, your personal AI assistant</h1>
-        <p className="font-body-md text-secondary hero-subtitle">
-          Explore the possibilities of generative AI. From crafting complex code to writing creative stories, discover how Chat bot hỗ trợ các bác nông dân can enhance your productivity and creativity.
-        </p>
+        <h1 className="font-display-lg text-on-surface">
+          {t.explore.heroTitlePrefix} {t.auth.brand}
+          {t.explore.heroTitleSuffix}
+        </h1>
+        <p className="font-body-md text-secondary hero-subtitle">{t.explore.heroSubtitle}</p>
       </section>
 
       <div className="search-bar-wrapper">
@@ -131,7 +134,7 @@ const ExplorePage: React.FC = () => {
           <a href="#">Google Terms</a>
           <a href="#">Google Privacy Policy</a>
         </div>
-        <p className="disclaimer">Chat bot hỗ trợ các bác nông dân is AI and can make mistakes. Always check critical information.</p>
+        <p className="disclaimer">{t.explore.disclaimer}</p>
       </footer>
     </div>
   );

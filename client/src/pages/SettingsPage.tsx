@@ -3,22 +3,18 @@ import gsap from 'gsap';
 import BentoCard from '../components/shared/BentoCard';
 import ChangePasswordModal from '../components/settings/ChangePasswordModal';
 import { useAuth } from '../context/AuthContext';
-import { ApiError, getMe, updateProfile, uploadAvatar, type UserRole } from '../lib/api';
+import { useTheme } from '../context/ThemeContext';
+import { useLanguage } from '../context/LanguageContext';
+import type { Language } from '../i18n/translations';
+import { ApiError, getMe, updateProfile, uploadAvatar } from '../lib/api';
 import './SettingsPage.css';
-
-const ROLE_LABELS: Record<UserRole, string> = {
-  admin: 'Quản trị viên',
-  farmer: 'Nông dân',
-  agronomist: 'Chuyên gia nông nghiệp',
-};
 
 const SettingsPage: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const { user, token, updateUser } = useAuth();
-
-  const [theme, setTheme] = useState<'light' | 'dark' | 'auto'>('light');
-  const [saveHistory, setSaveHistory] = useState(true);
+  const { theme, setTheme } = useTheme();
+  const { language, setLanguage, t } = useLanguage();
 
   const [name, setName] = useState(user?.name ?? '');
   const [isSavingName, setIsSavingName] = useState(false);
@@ -46,7 +42,7 @@ const SettingsPage: React.FC = () => {
     getMe(token)
       .then(updateUser)
       .catch((err) => {
-        setProfileError(err instanceof ApiError ? err.message : 'Không thể tải thông tin tài khoản.');
+        setProfileError(err instanceof ApiError ? err.message : t.settings.profileLoadError);
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
@@ -59,9 +55,9 @@ const SettingsPage: React.FC = () => {
     try {
       const updated = await updateProfile(token, { name: name.trim() });
       updateUser(updated);
-      setProfileSuccess('Đã lưu thay đổi.');
+      setProfileSuccess(t.settings.profileSaved);
     } catch (err) {
-      setProfileError(err instanceof ApiError ? err.message : 'Không thể lưu, thử lại sau.');
+      setProfileError(err instanceof ApiError ? err.message : t.settings.profileSaveError);
     } finally {
       setIsSavingName(false);
     }
@@ -78,7 +74,7 @@ const SettingsPage: React.FC = () => {
       const updated = await uploadAvatar(token, file);
       updateUser(updated);
     } catch (err) {
-      setProfileError(err instanceof ApiError ? err.message : 'Tải ảnh đại diện thất bại.');
+      setProfileError(err instanceof ApiError ? err.message : t.settings.avatarUploadError);
     } finally {
       setIsUploadingAvatar(false);
     }
@@ -88,8 +84,8 @@ const SettingsPage: React.FC = () => {
     <div className="settings-page" ref={containerRef}>
       <div className="settings-container">
         <div className="settings-header">
-          <h1 className="font-display-lg text-on-surface">Settings & Account</h1>
-          <p className="font-body-md text-on-surface-variant">Manage your AI experience, data privacy, and subscription details.</p>
+          <h1 className="font-display-lg text-on-surface">{t.settings.title}</h1>
+          <p className="font-body-md text-on-surface-variant">{t.settings.subtitle}</p>
         </div>
 
         <div className="settings-grid">
@@ -110,7 +106,7 @@ const SettingsPage: React.FC = () => {
                 className="edit-btn"
                 onClick={() => avatarInputRef.current?.click()}
                 disabled={isUploadingAvatar}
-                aria-label="Đổi ảnh đại diện"
+                aria-label={t.settings.changeAvatar}
               >
                 <span className="material-symbols-outlined text-sm">
                   {isUploadingAvatar ? 'hourglass_empty' : 'edit'}
@@ -127,7 +123,7 @@ const SettingsPage: React.FC = () => {
 
             <div className="profile-info">
               <label className="font-label-sm profile-name-label" htmlFor="profile-name-input">
-                Họ và tên
+                {t.settings.fullNameLabel}
               </label>
               <input
                 id="profile-name-input"
@@ -138,7 +134,7 @@ const SettingsPage: React.FC = () => {
               />
               <p className="font-body-md text-on-surface-variant email">{user?.email}</p>
               <div className="badges">
-                <span className="badge-pro font-label-md">{user ? ROLE_LABELS[user.role] : ''}</span>
+                <span className="badge-pro font-label-md">{user ? t.settings.roleLabels[user.role] : ''}</span>
               </div>
               {profileError && <p className="profile-feedback profile-feedback-error font-label-sm">{profileError}</p>}
               {profileSuccess && (
@@ -153,14 +149,14 @@ const SettingsPage: React.FC = () => {
                 onClick={handleSaveName}
                 disabled={isSavingName || name.trim() === user?.name}
               >
-                {isSavingName ? 'Đang lưu...' : 'Lưu thay đổi'}
+                {isSavingName ? t.settings.saving : t.settings.saveChanges}
               </button>
               <button
                 type="button"
                 className="change-password-btn font-label-md"
                 onClick={() => setIsPasswordModalOpen(true)}
               >
-                Đổi mật khẩu
+                {t.settings.changePassword}
               </button>
             </div>
           </BentoCard>
@@ -171,37 +167,35 @@ const SettingsPage: React.FC = () => {
           <BentoCard className="settings-card-anim col-span-7 setting-card">
             <div className="card-header-small">
               <span className="material-symbols-outlined text-primary">palette</span>
-              <h3 className="font-label-md uppercase tracking-wider text-on-surface-variant">Appearance</h3>
+              <h3 className="font-label-md uppercase tracking-wider text-on-surface-variant">
+                {t.settings.appearance.title}
+              </h3>
             </div>
-            
+
             <div className="setting-row">
               <div className="setting-info">
-                <p className="font-label-md font-semibold text-on-surface">Theme</p>
-                <p className="font-label-sm text-on-surface-variant">Choose how Chat bot hỗ trợ các bác nông dân looks on your device.</p>
+                <p className="font-label-md font-semibold text-on-surface">{t.settings.appearance.themeLabel}</p>
+                <p className="font-label-sm text-on-surface-variant">{t.settings.appearance.themeDesc}</p>
               </div>
-              
+
               <div className="theme-toggle">
-                <button 
+                <button
+                  type="button"
                   className={`theme-btn font-label-sm ${theme === 'light' ? 'active' : ''}`}
                   onClick={() => setTheme('light')}
                 >
-                  Light
+                  {t.settings.appearance.light}
                 </button>
-                <button 
+                <button
+                  type="button"
                   className={`theme-btn font-label-sm ${theme === 'dark' ? 'active' : ''}`}
                   onClick={() => setTheme('dark')}
                 >
-                  Dark
-                </button>
-                <button 
-                  className={`theme-btn font-label-sm ${theme === 'auto' ? 'active' : ''}`}
-                  onClick={() => setTheme('auto')}
-                >
-                  Auto
+                  {t.settings.appearance.dark}
                 </button>
               </div>
             </div>
-            
+
             <div className="divider"></div>
           </BentoCard>
 
@@ -209,24 +203,40 @@ const SettingsPage: React.FC = () => {
           <BentoCard className="settings-card-anim col-span-6 setting-card">
             <div className="card-header-small">
               <span className="material-symbols-outlined text-primary">language</span>
-              <h3 className="font-label-md uppercase tracking-wider text-on-surface-variant">Language</h3>
+              <h3 className="font-label-md uppercase tracking-wider text-on-surface-variant">
+                {t.settings.language.title}
+              </h3>
             </div>
-            
+
             <div className="info-box">
               <div className="info-left">
                 <span className="material-symbols-outlined text-on-surface-variant">translate</span>
-                <span className="font-label-md text-on-surface">Primary Language</span>
+                <span className="font-label-md text-on-surface">{t.settings.language.primaryLanguage}</span>
               </div>
-              <span className="font-label-md text-primary font-semibold">English (US)</span>
+
+              <div className="theme-toggle">
+                <button
+                  type="button"
+                  className={`theme-btn font-label-sm ${language === 'vi' ? 'active' : ''}`}
+                  onClick={() => setLanguage('vi' as Language)}
+                >
+                  {t.settings.language.vietnamese}
+                </button>
+                <button
+                  type="button"
+                  className={`theme-btn font-label-sm ${language === 'en' ? 'active' : ''}`}
+                  onClick={() => setLanguage('en' as Language)}
+                >
+                  {t.settings.language.english}
+                </button>
+              </div>
             </div>
-
           </BentoCard>
-
         </div>
-        
+
         <footer className="settings-footer">
           <p className="font-label-sm text-on-surface-variant mb-4">
-              AI and can make mistakes.
+            {t.explore.disclaimer}
           </p>
           <div className="footer-icons">
             <span className="material-symbols-outlined text-lg">policy</span>

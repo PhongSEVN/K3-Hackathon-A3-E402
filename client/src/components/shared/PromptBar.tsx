@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../context/LanguageContext';
 import './PromptBar.css';
 
 interface PromptBarProps {
@@ -6,9 +7,10 @@ interface PromptBarProps {
 }
 
 const PromptBar: React.FC<PromptBarProps> = ({ variant = 'default' }) => {
+  const { t } = useLanguage();
   const [isFocused, setIsFocused] = useState(false);
   const [inputValue, setInputValue] = useState('');
-  
+
   const isPremium = variant === 'premium';
 
   return (
@@ -29,17 +31,15 @@ const PromptBar: React.FC<PromptBarProps> = ({ variant = 'default' }) => {
             </div>
           </>
         )}
-        
+
         {/* Content (Layer 3 & 4 styling depends on variant class) */}
         <div className={`prompt-bar-inner ${!isPremium ? 'default-style' : ''}`}>
-          <button className="prompt-btn add-btn">
-            <span className="material-symbols-outlined">add</span>
-          </button>
+       
           
           <input 
             type="text" 
             className="prompt-input" 
-            placeholder="Ask Chat bot hỗ trợ các bác nông dân" 
+            placeholder={t.home.askPlaceholder}
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onFocus={() => setIsFocused(true)}

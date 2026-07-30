@@ -4,11 +4,13 @@ import ChatBubble from '../components/chat/ChatBubble';
 import CodeBlock from '../components/chat/CodeBlock';
 import SuggestionChip from '../components/shared/SuggestionChip';
 import PromptBar from '../components/shared/PromptBar';
+import { useLanguage } from '../context/LanguageContext';
 import './ChatPage.css';
 
 const ChatPage: React.FC = () => {
+  const { t } = useLanguage();
   const containerRef = useRef<HTMLDivElement>(null);
-  
+
   useEffect(() => {
     if (containerRef.current) {
       const messages = containerRef.current.querySelectorAll('.message-enter');
@@ -41,7 +43,7 @@ const ChatPage: React.FC = () => {
     <div className="chat-page-container">
       <div className="chat-header">
         <div className="chat-title">
-          <span className="font-headline-md font-medium text-on-surface">Chat bot hỗ trợ các bác nông dân</span>
+          <span className="font-headline-md font-medium text-on-surface">{t.chat.title}</span>
           <span className="material-symbols-outlined text-outline-variant cursor-pointer">expand_more</span>
         </div>
       </div>

@@ -1,7 +1,9 @@
 import React, { useRef, useState } from 'react';
+import { useLanguage } from '../../context/LanguageContext';
 import './ImageUploadPanel.css';
 
 const ImageUploadPanel: React.FC = () => {
+  const { t } = useLanguage();
   const inputRef = useRef<HTMLInputElement>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
@@ -68,8 +70,8 @@ const ImageUploadPanel: React.FC = () => {
       ) : (
         <button type="button" className="image-upload-trigger" onClick={() => inputRef.current?.click()}>
           <span className="material-symbols-outlined upload-icon">upload</span>
-          <span className="font-body-md upload-title">Tải ảnh cây trồng bị bệnh</span>
-          <span className="font-label-sm upload-subtitle">Kéo thả ảnh vào đây hoặc bấm để chọn file</span>
+          <span className="font-body-md upload-title">{t.home.uploadTitle}</span>
+          <span className="font-label-sm upload-subtitle">{t.home.uploadSubtitle}</span>
         </button>
       )}
     </div>
