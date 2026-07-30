@@ -137,3 +137,38 @@ export function createPrediction(token: string, file: File): Promise<PredictionR
     body: formData,
   });
 }
+
+export type AgronomistCaseStatus = 'pending' | 'in_progress' | 'answered';
+export type AgronomistCasePriority = 'low' | 'normal' | 'high' | 'urgent';
+
+export interface AgronomistCaseResponse {
+  id: string;
+  sender: string;
+  image: string;
+  predicted_label: string | null;
+  confidence: number | null;
+  confirmed_label: string | null;
+  comment: string | null;
+  status: AgronomistCaseStatus;
+  priority: AgronomistCasePriority;
+  created_at: string;
+  updated_at: string;
+}
+
+export function getAgronomistCases(token: string): Promise<AgronomistCaseResponse[]> {
+  return request<AgronomistCaseResponse[]>('/agronomist/cases', {
+    headers: authHeaders(token),
+  });
+}
+
+export function updateAgronomistCase(
+  token: string,
+  caseId: string,
+  payload: { comment: string; confirmed_label: string | null; status: AgronomistCaseStatus }
+): Promise<AgronomistCaseResponse> {
+  return request<AgronomistCaseResponse>(`/agronomist/cases/${caseId}`, {
+    method: 'PATCH',
+    headers: { ...authHeaders(token), 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+}
