@@ -5,7 +5,14 @@ __pycache__/
 *.py[cod]
 *.venv
 *datasets
+data/negatives/
+data/_negatives_cache/
+data/_rejected/
 rag/vectorstore/chroma/
 *.idea
 *.vscode
+
+resnet_artifacts.tar.gz
+
+data/dataset
 cv/results
