@@ -115,8 +115,9 @@ def call_openai(prompt: str) -> str:
 
 def fallback_answer(question: str, analysis: QuestionAnalysis, contexts: list[RetrievedChunk]) -> str:
     if analysis.intent == "safe_refusal":
+        crop = analysis.crop or "cây trồng"
         return (
-            "Mình không thể đưa một liều lượng thuốc chính xác cho mọi bệnh trên lúa. "
+            f"Mình không thể đưa một liều lượng thuốc chính xác cho mọi bệnh trên {crop}. "
             "Liều lượng phụ thuộc bệnh, giai đoạn cây, hoạt chất, nhãn thuốc, thời tiết và quy định địa phương. "
             "Bạn nên nêu bệnh/triệu chứng cụ thể, hoặc hỏi cán bộ BVTV/chuyên gia trước khi phun."
         )
@@ -177,14 +178,22 @@ class AgenticRAG:
             if analysis.missing_fields or analysis.intent == "safe_refusal"
             else self.retriever.search(question, top_k=top_k, crop=analysis.crop)
         )
-        prompt = ANSWER_PROMPT.format(
-            question=question,
-            crop=analysis.crop or "chưa rõ",
-            intent=analysis.intent,
-            missing_fields=", ".join(analysis.missing_fields) or "không",
-            contexts=format_contexts(contexts),
-        )
-        answer = call_openai(prompt) if self.use_llm else ""
+        # No LLM call when there is nothing grounded to answer from: missing
+        # required fields, a safe-refusal intent, or an empty retrieval (out
+        # of scope). Otherwise the LLM tends to answer anyway from its own
+        # knowledge instead of asking to clarify / refusing, and does so
+        # without citations (see golden set G11/G12/G19/G32/G33).
+        if contexts:
+            prompt = ANSWER_PROMPT.format(
+                question=question,
+                crop=analysis.crop or "chưa rõ",
+                intent=analysis.intent,
+                missing_fields=", ".join(analysis.missing_fields) or "không",
+                contexts=format_contexts(contexts),
+            )
+            answer = call_openai(prompt) if self.use_llm else ""
+        else:
+            answer = ""
         answer = answer or fallback_answer(question, analysis, contexts)
         confidence = confidence_from(contexts, analysis)
         citations: list[Citation] = [item.citation for item in contexts[:3]]
