@@ -1,0 +1,9 @@
+# Torch/torchvision KHÔNG liệt kê ở đây có chủ ý.
+# Trên vast.ai template PyTorch đã có build khớp CUDA của GPU. Để pip tự xử lý torch
+# rất dễ kéo về build sai kiến trúc (vd RTX 50xx / Blackwell sm_120 bắt buộc cu128)
+# rồi hỏng cả môi trường. Môi trường trắng thì cài tay trước:
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
+# Yêu cầu: torch >= 2.2, torchvision >= 0.17 (RTX 50xx: torch >= 2.7 + cu128)
+numpy>=1.24
+pillow>=10.0
+scikit-learn>=1.3
