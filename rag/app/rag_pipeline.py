@@ -119,7 +119,7 @@ class LocalRetriever:
     def _to_result(self, chunk: dict, score: float) -> RetrievedChunk:
         citation = Citation(
             source_file=chunk["source_file"],
-            source_url=chunk.get("source_url", ""),
+            source_urls=chunk.get("source_urls", []),
             relative_path=chunk["relative_path"],
             chunk_index=int(chunk["chunk_index"]),
         )

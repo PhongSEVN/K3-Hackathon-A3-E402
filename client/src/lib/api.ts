@@ -98,3 +98,42 @@ export function changePassword(
     body: JSON.stringify(payload),
   });
 }
+
+export interface AdminStatsResponse {
+  dataset_size: number;
+}
+
+export interface RetrainResponse {
+  status: string;
+  dataset_size: number;
+}
+
+export function getAdminStats(token: string): Promise<AdminStatsResponse> {
+  return request<AdminStatsResponse>('/admin/stats', {
+    headers: authHeaders(token),
+  });
+}
+
+export function triggerRetrain(token: string): Promise<RetrainResponse> {
+  return request<RetrainResponse>('/admin/retrain', {
+    method: 'POST',
+    headers: authHeaders(token),
+  });
+}
+
+export interface PredictionResponse {
+  image_url: string;
+  predicted_label: string;
+  confidence: number;
+}
+
+export function createPrediction(token: string, file: File): Promise<PredictionResponse> {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  return request<PredictionResponse>('/predictions', {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: formData,
+  });
+}

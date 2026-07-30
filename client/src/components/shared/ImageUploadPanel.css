@@ -68,6 +68,24 @@
   display: block;
 }
 
+.prediction-badge {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  max-width: calc(100% - 24px);
+  padding: 6px 14px;
+  border-radius: 9999px;
+  background-color: rgba(11, 87, 208, 0.85);
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.prediction-badge.prediction-badge-error {
+  background-color: rgba(186, 26, 26, 0.85);
+}
+
 .image-preview-footer {
   position: absolute;
   left: 0;

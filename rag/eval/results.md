@@ -4,14 +4,14 @@
 - Cases: 36
 - Quality bar: faithfulness >= 0.75, answer_relevancy >= 0.75, context_precision >= 0.65
 - Avg faithfulness: 1.000
-- Avg answer_relevancy: 0.884
+- Avg answer_relevancy: 0.894
 - Avg context_precision: 0.986
 
 | id | relevancy | context precision | faithfulness | human review |
 |---|---:|---:|---:|---|
 | G01 | 1.0 | 1.0 | 1.0 | False |
 | G02 | 1.0 | 1.0 | 1.0 | False |
-| G03 | 0.667 | 1.0 | 1.0 | False |
+| G03 | 1.0 | 1.0 | 1.0 | False |
 | G04 | 1.0 | 1.0 | 1.0 | False |
 | G05 | 1.0 | 1.0 | 1.0 | False |
 | G06 | 1.0 | 1.0 | 1.0 | False |

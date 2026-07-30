@@ -52,7 +52,7 @@ def heuristic_eval(cases: list[dict], agent: AgenticRAG) -> list[dict]:
     for case in cases:
         result = agent.answer_question(case["question"])
         sources = [citation.relative_path for citation in result.citations] + [
-            citation.source_url for citation in result.citations if citation.source_url
+            url for citation in result.citations for url in citation.source_urls
         ]
         answer = result.answer
         expected_points = case.get("expected_points", [])
