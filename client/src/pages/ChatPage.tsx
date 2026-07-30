@@ -1,14 +1,17 @@
 import React, { useEffect, useRef } from 'react';
 import gsap from 'gsap';
+import { Link, useParams } from 'react-router-dom';
 import ChatBubble from '../components/chat/ChatBubble';
-import CodeBlock from '../components/chat/CodeBlock';
-import SuggestionChip from '../components/shared/SuggestionChip';
 import PromptBar from '../components/shared/PromptBar';
 import { useLanguage } from '../context/LanguageContext';
+import { useChatHistory } from '../context/ChatHistoryContext';
 import './ChatPage.css';
 
 const ChatPage: React.FC = () => {
   const { t } = useLanguage();
+  const { chatId } = useParams();
+  const { conversations, getConversation } = useChatHistory();
+  const conversation = getConversation(chatId);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -28,17 +31,6 @@ const ChatPage: React.FC = () => {
     }
   }, []);
 
-  const sampleCode = `query GetUserData {
-  user(id: "123") {
-    name
-    email
-    orders {
-      id
-      total
-    }
-  }
-}`;
-
   return (
     <div className="chat-page-container">
       <div className="chat-header">
@@ -50,44 +42,35 @@ const ChatPage: React.FC = () => {
       
       <div className="chat-scroll-area custom-scrollbar" ref={containerRef}>
         <div className="chat-content">
-          <div className="message-enter">
-            <ChatBubble isUser={true}>
-              <p>Can you explain the difference between a REST API and GraphQL? Provide some code examples and pros/cons.</p>
-            </ChatBubble>
-          </div>
-          
-          <div className="message-enter">
-            <ChatBubble isUser={false}>
-              <div className="space-y-4">
-                <p style={{ marginBottom: '16px', lineHeight: 1.6 }}>Sure! Both <strong>REST</strong> and <strong>GraphQL</strong> are popular architectures for building APIs, but they handle data fetching in very different ways. Here is a breakdown of their differences:</p>
-                
-                <CodeBlock language="JavaScript / GraphQL" code={sampleCode} />
-                
-                <h4 className="font-headline-md" style={{ marginTop: '24px', marginBottom: '16px' }}>Key Differences</h4>
-                
-                <ul className="custom-list">
-                  <li>
-                    <div className="bullet"></div>
-                    <p><strong>REST:</strong> Uses standard HTTP methods (GET, POST, etc.) and exposes multiple endpoints for different resources.</p>
-                  </li>
-                  <li>
-                    <div className="bullet"></div>
-                    <p><strong>GraphQL:</strong> Uses a single endpoint and a query language to request exactly the data you need.</p>
-                  </li>
-                  <li>
-                    <div className="bullet"></div>
-                    <p><strong>Overfetching:</strong> Common in REST (getting more data than you need). Virtually non-existent in GraphQL.</p>
-                  </li>
-                </ul>
-                
-                <div className="chip-row">
-                  <SuggestionChip label="Which is better for mobile?" />
-                  <SuggestionChip label="Show a REST endpoint example" />
-                  <SuggestionChip label="How to migrate to GraphQL?" />
-                </div>
+          {!chatId && conversations.length > 0 && (
+            <section className="chat-history-view" aria-label="Lịch sử trò chuyện">
+              <h2 className="font-headline-sm">Lịch sử trò chuyện</h2>
+              <div className="chat-history-grid">
+                {conversations.map((item) => (
+                  <Link className="chat-history-card" to={`/chat/${item.id}`} key={item.id}>
+                    <span className="font-title-md">{item.title}</span>
+                    <span className="font-body-sm chat-history-preview">
+                      {item.messages.at(-1)?.content ?? 'Chưa có tin nhắn'}
+                    </span>
+                    <span className="font-label-sm chat-history-time">{item.updatedAt}</span>
+                  </Link>
+                ))}
               </div>
-            </ChatBubble>
-          </div>
+            </section>
+          )}
+          {!chatId && conversations.length === 0 && (
+            <div className="chat-history-empty">
+              <span className="material-symbols-outlined">forum</span>
+              <p>Chưa có cuộc trò chuyện nào. Hãy nhập câu hỏi bên dưới để bắt đầu.</p>
+            </div>
+          )}
+          {conversation?.messages.map((message) => (
+            <div className="message-enter" key={message.id}>
+              <ChatBubble isUser={message.role === 'user'}>
+                <p>{message.content}</p>
+              </ChatBubble>
+            </div>
+          ))}
         </div>
       </div>
       

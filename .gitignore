@@ -15,3 +15,4 @@ rag/vectorstore/chroma/
 resnet_artifacts.tar.gz
 
 data/dataset
+cv/results

@@ -4,7 +4,8 @@ export interface Translations {
   nav: {
     newChat: string;
     history: string;
-    explore: string;
+    admin: string;
+    agronomist: string;
     settings: string;
     help: string;
     logout: string;
@@ -18,6 +19,8 @@ export interface Translations {
     privacyLink: string;
     disclaimerMiddle: string;
     disclaimerSuffix: string;
+    analyzing: string;
+    predictionError: string;
   };
   auth: {
     brand: string;
@@ -42,11 +45,24 @@ export interface Translations {
   chat: {
     title: string;
   };
-  explore: {
-    heroTitlePrefix: string;
-    heroTitleSuffix: string;
-    heroSubtitle: string;
+  common: {
     disclaimer: string;
+  };
+  admin: {
+    title: string;
+    subtitle: string;
+    datasetTitle: string;
+    datasetDesc: string;
+    retrainButton: string;
+    retraining: string;
+    retrainQueued: string;
+    retrainError: string;
+    loadError: string;
+  };
+  agronomist: {
+    title: string;
+    subtitle: string;
+    placeholder: string;
   };
   settings: {
     title: string;
@@ -94,7 +110,8 @@ export const translations: Record<Language, Translations> = {
     nav: {
       newChat: 'Đoạn chat mới',
       history: 'Lịch sử chat',
-      explore: 'Khám phá',
+      admin: 'Quản trị',
+      agronomist: 'Chuyên gia',
       settings: 'Cài đặt',
       help: 'Trợ giúp',
       logout: 'Đăng xuất',
@@ -108,6 +125,8 @@ export const translations: Record<Language, Translations> = {
       privacyLink: 'Chính sách quyền riêng tư',
       disclaimerMiddle: 'và',
       disclaimerSuffix: 'được áp dụng. Chat bot có thể trả lời sai, hãy kiểm tra lại thông tin quan trọng.',
+      analyzing: 'Đang phân tích ảnh...',
+      predictionError: 'Không thể phân tích ảnh, thử lại sau.',
     },
     auth: {
       brand: 'Chat bot hỗ trợ các bác nông dân',
@@ -132,12 +151,24 @@ export const translations: Record<Language, Translations> = {
     chat: {
       title: 'Chat bot hỗ trợ các bác nông dân',
     },
-    explore: {
-      heroTitlePrefix: 'Gặp gỡ',
-      heroTitleSuffix: ', trợ lý AI riêng của bạn',
-      heroSubtitle:
-        'Khám phá khả năng của AI tạo sinh. Từ viết code phức tạp đến sáng tác nội dung, xem Chat bot có thể nâng cao năng suất của bạn thế nào.',
+    common: {
       disclaimer: 'Chat bot có thể trả lời sai. Luôn kiểm tra lại thông tin quan trọng.',
+    },
+    admin: {
+      title: 'Trang quản trị',
+      subtitle: 'Quản lý dữ liệu huấn luyện và mô hình phân loại bệnh cây trồng.',
+      datasetTitle: 'Tập ảnh vàng (gold set)',
+      datasetDesc: 'Số ảnh nông dân gửi lên, dùng để huấn luyện lại mô hình.',
+      retrainButton: 'Retrain mô hình',
+      retraining: 'Đang gửi yêu cầu...',
+      retrainQueued: 'Đã gửi yêu cầu retrain với {count} ảnh.',
+      retrainError: 'Gửi yêu cầu retrain thất bại.',
+      loadError: 'Không thể tải dữ liệu thống kê.',
+    },
+    agronomist: {
+      title: 'Trang chuyên gia',
+      subtitle: 'Xem lại và xác nhận các phản hồi chẩn đoán từ nông dân.',
+      placeholder: 'Chưa có phản hồi nào cần xem xét.',
     },
     settings: {
       title: 'Cài đặt & Tài khoản',
@@ -187,7 +218,8 @@ export const translations: Record<Language, Translations> = {
     nav: {
       newChat: 'New Chat',
       history: 'History',
-      explore: 'Explore',
+      admin: 'Admin',
+      agronomist: 'Agronomist',
       settings: 'Settings',
       help: 'Help',
       logout: 'Log out',
@@ -201,6 +233,8 @@ export const translations: Record<Language, Translations> = {
       privacyLink: 'Privacy Policy',
       disclaimerMiddle: 'and',
       disclaimerSuffix: 'apply. The chatbot can make mistakes, always verify important information.',
+      analyzing: 'Analyzing image...',
+      predictionError: 'Could not analyze the image, please try again.',
     },
     auth: {
       brand: 'Farmer Support Chatbot',
@@ -225,12 +259,24 @@ export const translations: Record<Language, Translations> = {
     chat: {
       title: 'Farmer Support Chatbot',
     },
-    explore: {
-      heroTitlePrefix: 'Meet',
-      heroTitleSuffix: ', your personal AI assistant',
-      heroSubtitle:
-        'Explore the possibilities of generative AI. From crafting complex code to writing creative stories, discover how the chatbot can enhance your productivity.',
+    common: {
       disclaimer: 'The chatbot is AI and can make mistakes. Always check critical information.',
+    },
+    admin: {
+      title: 'Admin dashboard',
+      subtitle: 'Manage training data and the plant disease classification model.',
+      datasetTitle: 'Gold dataset',
+      datasetDesc: 'Number of farmer-submitted images available for retraining the model.',
+      retrainButton: 'Retrain model',
+      retraining: 'Submitting request...',
+      retrainQueued: 'Retrain job queued with {count} images.',
+      retrainError: 'Failed to submit retrain request.',
+      loadError: 'Could not load dashboard stats.',
+    },
+    agronomist: {
+      title: 'Agronomist dashboard',
+      subtitle: 'Review and confirm diagnosis feedback submitted by farmers.',
+      placeholder: 'No feedback pending review yet.',
     },
     settings: {
       title: 'Settings & Account',

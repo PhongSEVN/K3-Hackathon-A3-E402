@@ -1,13 +1,40 @@
 import React, { useRef, useState } from 'react';
+import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
+import { ApiError, createPrediction } from '../../lib/api';
 import './ImageUploadPanel.css';
+
+interface PredictionState {
+  label: string;
+  confidence: number;
+}
 
 const ImageUploadPanel: React.FC = () => {
   const { t } = useLanguage();
+  const { token } = useAuth();
   const inputRef = useRef<HTMLInputElement>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [isPredicting, setIsPredicting] = useState(false);
+  const [prediction, setPrediction] = useState<PredictionState | null>(null);
+  const [predictionError, setPredictionError] = useState<string | null>(null);
+
+  const runPrediction = async (file: File) => {
+    if (!token) return;
+
+    setIsPredicting(true);
+    setPrediction(null);
+    setPredictionError(null);
+    try {
+      const result = await createPrediction(token, file);
+      setPrediction({ label: result.predicted_label, confidence: result.confidence });
+    } catch (err) {
+      setPredictionError(err instanceof ApiError ? err.message : t.home.predictionError);
+    } finally {
+      setIsPredicting(false);
+    }
+  };
 
   const applyFile = (file: File | undefined) => {
     if (!file || !file.type.startsWith('image/')) return;
@@ -17,6 +44,7 @@ const ImageUploadPanel: React.FC = () => {
       return URL.createObjectURL(file);
     });
     setFileName(file.name);
+    void runPrediction(file);
   };
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -36,6 +64,8 @@ const ImageUploadPanel: React.FC = () => {
       return null;
     });
     setFileName(null);
+    setPrediction(null);
+    setPredictionError(null);
     if (inputRef.current) inputRef.current.value = '';
   };
 
@@ -60,6 +90,19 @@ const ImageUploadPanel: React.FC = () => {
       {previewUrl ? (
         <div className="image-preview" onClick={() => inputRef.current?.click()}>
           <img src={previewUrl} alt="Ảnh cây trồng đã chọn" />
+
+          {(isPredicting || prediction || predictionError) && (
+            <div className={`prediction-badge ${predictionError ? 'prediction-badge-error' : ''}`}>
+              {isPredicting && <span className="font-label-sm">{t.home.analyzing}</span>}
+              {!isPredicting && prediction && (
+                <span className="font-label-sm">
+                  {prediction.label.replaceAll('_', ' ')} · {(prediction.confidence * 100).toFixed(0)}%
+                </span>
+              )}
+              {!isPredicting && predictionError && <span className="font-label-sm">{predictionError}</span>}
+            </div>
+          )}
+
           <div className="image-preview-footer">
             <span className="font-label-sm image-file-name">{fileName}</span>
             <button type="button" className="image-remove-btn" onClick={handleRemove} aria-label="Xóa ảnh">

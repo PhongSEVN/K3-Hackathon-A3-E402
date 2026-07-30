@@ -236,7 +236,7 @@ const SettingsPage: React.FC = () => {
 
         <footer className="settings-footer">
           <p className="font-label-sm text-on-surface-variant mb-4">
-            {t.explore.disclaimer}
+            {t.common.disclaimer}
           </p>
           <div className="footer-icons">
             <span className="material-symbols-outlined text-lg">policy</span>

@@ -1,20 +1,25 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import ChatPage from './pages/ChatPage';
-import ExplorePage from './pages/ExplorePage';
 import SettingsPage from './pages/SettingsPage';
+import AdminPage from './pages/AdminPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import SideNavRail from './components/layout/SideNavRail';
 import TopAppBar from './components/layout/TopAppBar';
 import RequireAuth from './components/auth/RequireAuth';
+import RequireRole from './components/auth/RequireRole';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { LanguageProvider } from './context/LanguageContext';
+import { ChatHistoryProvider } from './context/ChatHistoryContext';
 import './index.css';
 import './App.css';
 
 const AUTH_ROUTES = ['/login', '/register'];
+const ExpertDashboard = lazy(() => import('./ExpertApp').then(module => ({ default: module.ExpertDashboard })));
+const ExpertQueue = lazy(() => import('./ExpertApp').then(module => ({ default: module.ExpertQueue })));
 
 function AppShell() {
   const location = useLocation();
@@ -31,8 +36,29 @@ function AppShell() {
           <Route element={<RequireAuth />}>
             <Route path="/" element={<HomePage />} />
             <Route path="/chat" element={<ChatPage />} />
-            <Route path="/explore" element={<ExplorePage />} />
+            <Route path="/chat/:chatId" element={<ChatPage />} />
             <Route path="/settings" element={<SettingsPage />} />
+            <Route element={<RequireRole allowedRoles={['admin']} />}>
+              <Route path="/admin" element={<AdminPage />} />
+            </Route>
+            <Route element={<RequireRole allowedRoles={['admin', 'agronomist']} />}>
+              <Route
+                path="/agronomist"
+                element={
+                  <Suspense fallback={<div className="route-loading" aria-label="Đang tải" />}>
+                    <ExpertDashboard />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/agronomist/queue"
+                element={
+                  <Suspense fallback={<div className="route-loading" aria-label="Đang tải" />}>
+                    <ExpertQueue />
+                  </Suspense>
+                }
+              />
+            </Route>
           </Route>
         </Routes>
       </main>
@@ -46,7 +72,9 @@ function App() {
       <ThemeProvider>
         <LanguageProvider>
           <AuthProvider>
-            <AppShell />
+            <ChatHistoryProvider>
+              <AppShell />
+            </ChatHistoryProvider>
           </AuthProvider>
         </LanguageProvider>
       </ThemeProvider>
