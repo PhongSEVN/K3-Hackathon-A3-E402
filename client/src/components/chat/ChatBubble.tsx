@@ -1,4 +1,6 @@
 import React from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface ChatBubbleProps {
   isUser: boolean;
@@ -32,7 +34,7 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ isUser, children }) => {
       )}
       
       <div 
-        className={isUser ? 'font-body-md' : 'font-body-md'}
+        className={isUser ? 'font-body-md' : 'font-body-md markdown-body'}
         style={{
           maxWidth: '85%',
           backgroundColor: isUser ? 'var(--surface-container-high)' : 'transparent',
@@ -41,7 +43,11 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ isUser, children }) => {
           color: 'var(--on-surface)'
         }}
       >
-        {children}
+        {typeof children === 'string' && !isUser ? (
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>{children}</ReactMarkdown>
+        ) : (
+          <div style={{ whiteSpace: 'pre-line' }}>{children}</div>
+        )}
       </div>
     </div>
   );

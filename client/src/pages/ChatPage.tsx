@@ -67,7 +67,7 @@ const ChatPage: React.FC = () => {
           {conversation?.messages.map((message) => (
             <div className="message-enter" key={message.id}>
               <ChatBubble isUser={message.role === 'user'}>
-                <p>{message.content}</p>
+                {message.role === 'assistant' ? `${message.content}\n\n**Nguồn tham khảo:** Hệ chuyên gia AI` : message.content}
               </ChatBubble>
             </div>
           ))}

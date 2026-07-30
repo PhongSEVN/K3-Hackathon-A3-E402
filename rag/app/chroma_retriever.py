@@ -54,9 +54,9 @@ class OpenAIEmbeddingFunction(EmbeddingFunction[Documents]):
         load_env_file()
         self.model = model
         self.batch_size = batch_size
-        self.api_key = os.getenv("API_KEY")
+        self.api_key = os.getenv("API_KEY_OPEN_AI")
         if not self.api_key:
-            raise RuntimeError("API_KEY is required in .env to compute OpenAI embeddings.")
+            raise RuntimeError("API_KEY_OPEN_AI is required in .env to compute OpenAI embeddings.")
 
     def name(self) -> str:
         return f"openai-{self.model}"
@@ -87,17 +87,30 @@ class OpenAIEmbeddingFunction(EmbeddingFunction[Documents]):
         return [item["embedding"] for item in raw["data"]]
 
 
+def get_chroma_client():
+    """Connect to the dockerized Chroma server (docker-compose `chroma` service).
+
+    Falls back to a local on-disk PersistentClient only if CHROMA_HOST is
+    explicitly unset, so scripts still work standalone without docker.
+    """
+    import chromadb  # local import: optional heavy dependency
+
+    load_env_file()
+    host = os.getenv("CHROMA_HOST")
+    if host:
+        port = int(os.getenv("CHROMA_PORT", "8001"))
+        return chromadb.HttpClient(host=host, port=port)
+    return chromadb.PersistentClient(path=str(PERSIST_DIR))
+
+
 class ChromaRetriever:
     def __init__(
         self,
-        persist_dir: Path = PERSIST_DIR,
         collection_name: str = COLLECTION_NAME,
         min_score: float = MIN_SCORE,
     ) -> None:
-        import chromadb  # local import: optional heavy dependency
-
         self.min_score = min_score
-        self.client = chromadb.PersistentClient(path=str(persist_dir))
+        self.client = get_chroma_client()
         self.collection = self.client.get_or_create_collection(
             name=collection_name,
             embedding_function=OpenAIEmbeddingFunction(),

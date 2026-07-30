@@ -7,9 +7,14 @@ import './ImageUploadPanel.css';
 interface PredictionState {
   label: string;
   confidence: number;
+  imageUrl: string;
 }
 
-const ImageUploadPanel: React.FC = () => {
+interface ImageUploadPanelProps {
+  onPredicted?: (prediction: PredictionState | null) => void;
+}
+
+const ImageUploadPanel: React.FC<ImageUploadPanelProps> = ({ onPredicted }) => {
   const { t } = useLanguage();
   const { token } = useAuth();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -26,9 +31,16 @@ const ImageUploadPanel: React.FC = () => {
     setIsPredicting(true);
     setPrediction(null);
     setPredictionError(null);
+    onPredicted?.(null);
     try {
       const result = await createPrediction(token, file);
-      setPrediction({ label: result.predicted_label, confidence: result.confidence });
+      const nextPrediction: PredictionState = {
+        label: result.predicted_label,
+        confidence: result.confidence,
+        imageUrl: result.image_url,
+      };
+      setPrediction(nextPrediction);
+      onPredicted?.(nextPrediction);
     } catch (err) {
       setPredictionError(err instanceof ApiError ? err.message : t.home.predictionError);
     } finally {
@@ -66,6 +78,7 @@ const ImageUploadPanel: React.FC = () => {
     setFileName(null);
     setPrediction(null);
     setPredictionError(null);
+    onPredicted?.(null);
     if (inputRef.current) inputRef.current.value = '';
   };
 
@@ -88,27 +101,28 @@ const ImageUploadPanel: React.FC = () => {
       />
 
       {previewUrl ? (
-        <div className="image-preview" onClick={() => inputRef.current?.click()}>
-          <img src={previewUrl} alt="Ảnh cây trồng đã chọn" />
+        <div className="image-preview-container">
+          <div className="image-preview" onClick={() => inputRef.current?.click()}>
+            <img src={previewUrl} alt="Ảnh cây trồng đã chọn" />
 
+            <div className="image-preview-footer">
+              <span className="font-label-sm image-file-name">{fileName}</span>
+              <button type="button" className="image-remove-btn" onClick={handleRemove} aria-label="Xóa ảnh">
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+          </div>
           {(isPredicting || prediction || predictionError) && (
-            <div className={`prediction-badge ${predictionError ? 'prediction-badge-error' : ''}`}>
+            <div className={`prediction-result ${predictionError ? 'prediction-result-error' : ''}`}>
               {isPredicting && <span className="font-label-sm">{t.home.analyzing}</span>}
               {!isPredicting && prediction && (
-                <span className="font-label-sm">
-                  {prediction.label.replaceAll('_', ' ')} · {(prediction.confidence * 100).toFixed(0)}%
+                <span className="font-label-sm font-medium" style={{ fontSize: '14px' }}>
+                  Chuẩn đoán: {prediction.label.replaceAll('_', ' ')} ({(prediction.confidence * 100).toFixed(0)}%)
                 </span>
               )}
               {!isPredicting && predictionError && <span className="font-label-sm">{predictionError}</span>}
             </div>
           )}
-
-          <div className="image-preview-footer">
-            <span className="font-label-sm image-file-name">{fileName}</span>
-            <button type="button" className="image-remove-btn" onClick={handleRemove} aria-label="Xóa ảnh">
-              <span className="material-symbols-outlined">close</span>
-            </button>
-          </div>
         </div>
       ) : (
         <button type="button" className="image-upload-trigger" onClick={() => inputRef.current?.click()}>

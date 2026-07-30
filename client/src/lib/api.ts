@@ -137,3 +137,30 @@ export function createPrediction(token: string, file: File): Promise<PredictionR
     body: formData,
   });
 }
+
+export interface ChatMessageResponse {
+  id: string;
+  session_id: string;
+  question: string;
+  answer: string | null;
+  diease: string | null;
+  image: string | null;
+  created_at: string;
+}
+
+export function sendChatMessage(
+  token: string,
+  payload: { session_id: string; question: string; diease?: string; image?: string }
+): Promise<ChatMessageResponse> {
+  return request<ChatMessageResponse>('/chat/messages', {
+    method: 'POST',
+    headers: { ...authHeaders(token), 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+}
+
+export function getChatMessages(token: string, sessionId: string): Promise<ChatMessageResponse[]> {
+  return request<ChatMessageResponse[]>(`/chat/messages?session_id=${sessionId}`, {
+    headers: authHeaders(token),
+  });
+}
