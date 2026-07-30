@@ -72,6 +72,24 @@
   object-fit: cover;
 }
 
+.profile-image-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--surface-container-high);
+  color: var(--on-surface-variant);
+}
+
+.profile-image-placeholder .material-symbols-outlined {
+  font-size: 40px;
+}
+
+.hidden-file-input {
+  display: none;
+}
+
 .edit-btn {
   position: absolute;
   bottom: 0;
@@ -110,6 +128,44 @@
   margin: 0 0 16px;
 }
 
+.profile-name-label {
+  display: block;
+  color: var(--on-surface-variant);
+  margin-bottom: 4px;
+}
+
+.profile-name-input {
+  display: block;
+  width: 100%;
+  max-width: 320px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  padding: 6px 10px;
+  margin: 0 0 4px -10px;
+  background: transparent;
+  color: var(--on-surface);
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+.profile-name-input:hover,
+.profile-name-input:focus {
+  border-color: var(--outline-variant);
+  background-color: var(--surface-container-lowest);
+  outline: none;
+}
+
+.profile-feedback {
+  margin: 8px 0 0;
+}
+
+.profile-feedback-error {
+  color: var(--error);
+}
+
+.profile-feedback-success {
+  color: var(--google-blue);
+}
+
 .badges {
   display: flex;
   flex-wrap: wrap;
@@ -146,6 +202,36 @@
 }
 
 .manage-account-btn:hover {
+  background-color: var(--surface-container);
+}
+
+.manage-account-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.profile-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+
+@media (min-width: 768px) {
+  .profile-actions {
+    align-items: flex-end;
+  }
+}
+
+.change-password-btn {
+  border: 1px solid var(--outline-variant);
+  color: var(--on-surface-variant);
+  padding: 8px 24px;
+  border-radius: 9999px;
+  transition: background-color 0.2s;
+}
+
+.change-password-btn:hover {
   background-color: var(--surface-container);
 }
 

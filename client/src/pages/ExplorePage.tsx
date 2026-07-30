@@ -28,9 +28,9 @@ const ExplorePage: React.FC = () => {
   return (
     <div className="explore-page" ref={containerRef}>
       <section className="hero-section">
-        <h1 className="font-display-lg text-on-surface">Meet Gemini, your personal AI assistant</h1>
+        <h1 className="font-display-lg text-on-surface">Meet Chat bot hỗ trợ các bác nông dân, your personal AI assistant</h1>
         <p className="font-body-md text-secondary hero-subtitle">
-          Explore the possibilities of generative AI. From crafting complex code to writing creative stories, discover how Gemini can enhance your productivity and creativity.
+          Explore the possibilities of generative AI. From crafting complex code to writing creative stories, discover how Chat bot hỗ trợ các bác nông dân can enhance your productivity and creativity.
         </p>
       </section>
 
@@ -131,7 +131,7 @@ const ExplorePage: React.FC = () => {
           <a href="#">Google Terms</a>
           <a href="#">Google Privacy Policy</a>
         </div>
-        <p className="disclaimer">Gemini is AI and can make mistakes. Always check critical information.</p>
+        <p className="disclaimer">Chat bot hỗ trợ các bác nông dân is AI and can make mistakes. Always check critical information.</p>
       </footer>
     </div>
   );

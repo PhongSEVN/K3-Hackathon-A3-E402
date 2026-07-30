@@ -45,8 +45,8 @@ const RegisterPage: React.FC = () => {
 
       <div className="auth-card glass-card subtle-shadow">
         <div className="auth-brand">
-          <span className="material-symbols-outlined logo-icon">auto_awesome</span>
-          <span className="font-headline-md">Gemini</span>
+          <span className="material-symbols-outlined logo-icon">eco</span>
+          <span className="font-headline-md">Chat bot hỗ trợ các bác nông dân</span>
         </div>
 
         <h1 className="font-display-lg-mobile auth-title">Create your account</h1>

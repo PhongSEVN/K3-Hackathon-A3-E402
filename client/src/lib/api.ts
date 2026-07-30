@@ -26,12 +26,12 @@ export class ApiError extends Error {
   }
 }
 
-async function postJson<T>(path: string, body: unknown): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
+async function request<T>(path: string, options: RequestInit): Promise<T> {
+  const response = await fetch(`${API_BASE_URL}${path}`, options);
+
+  if (response.status === 204) {
+    return undefined as T;
+  }
 
   const data = await response.json().catch(() => null);
 
@@ -43,10 +43,58 @@ async function postJson<T>(path: string, body: unknown): Promise<T> {
   return data as T;
 }
 
+function authHeaders(token: string): HeadersInit {
+  return { Authorization: `Bearer ${token}` };
+}
+
 export function registerUser(payload: { email: string; password: string; name: string }): Promise<AuthResponse> {
-  return postJson<AuthResponse>('/auth/register', payload);
+  return request<AuthResponse>('/auth/register', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
 }
 
 export function loginUser(payload: { email: string; password: string }): Promise<AuthResponse> {
-  return postJson<AuthResponse>('/auth/login', payload);
+  return request<AuthResponse>('/auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+}
+
+export function getMe(token: string): Promise<UserResponse> {
+  return request<UserResponse>('/users/me', {
+    headers: authHeaders(token),
+  });
+}
+
+export function updateProfile(token: string, payload: { name: string }): Promise<UserResponse> {
+  return request<UserResponse>('/users/me', {
+    method: 'PATCH',
+    headers: { ...authHeaders(token), 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+}
+
+export function uploadAvatar(token: string, file: File): Promise<UserResponse> {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  return request<UserResponse>('/users/me/avatar', {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: formData,
+  });
+}
+
+export function changePassword(
+  token: string,
+  payload: { old_password: string; new_password: string }
+): Promise<void> {
+  return request<void>('/users/me/password', {
+    method: 'POST',
+    headers: { ...authHeaders(token), 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
 }

@@ -37,19 +37,18 @@ const SideNavRail: React.FC = () => {
     >
       <div className="nav-top">
         <div className="nav-brand">
-          <span className="material-symbols-outlined logo-icon">auto_awesome</span>
-          <span className="font-headline-md nav-label brand-name">Gemini</span>
+          <span className="material-symbols-outlined logo-icon">eco</span>
         </div>
 
         <nav className="nav-links">
           <NavLink to="/" className={({isActive}) => `nav-item ${isActive ? 'active' : ''}`} end>
             <span className="material-symbols-outlined icon">add</span>
-            <span className="font-label-md nav-label">New Chat</span>
+            <span className="font-label-md nav-label">Đoạn chat mới</span>
           </NavLink>
           
           <NavLink to="/chat" className={({isActive}) => `nav-item ${isActive ? 'active' : ''}`}>
             <span className="material-symbols-outlined icon">history</span>
-            <span className="font-label-md nav-label">History</span>
+            <span className="font-label-md nav-label">Lịch sử chat</span>
           </NavLink>
 
           <NavLink to="/explore" className={({isActive}) => `nav-item ${isActive ? 'active' : ''}`}>
@@ -62,15 +61,12 @@ const SideNavRail: React.FC = () => {
       <div className="nav-bottom">
         <NavLink to="/settings" className={({isActive}) => `nav-item ${isActive ? 'active' : ''}`}>
           <span className="material-symbols-outlined icon">settings</span>
-          <span className="font-label-md nav-label">Settings</span>
+          <span className="font-label-md nav-label">Cài đặt</span>
         </NavLink>
-        <button className="nav-item">
-          <span className="material-symbols-outlined icon">help</span>
-          <span className="font-label-md nav-label">Help</span>
-        </button>
+
         <button className="nav-item" onClick={handleLogout}>
           <span className="material-symbols-outlined icon">logout</span>
-          <span className="font-label-md nav-label">Log out</span>
+          <span className="font-label-md nav-label">Đăng xuất</span>
         </button>
       </div>
     </aside>

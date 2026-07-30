@@ -41,7 +41,7 @@ const ChatPage: React.FC = () => {
     <div className="chat-page-container">
       <div className="chat-header">
         <div className="chat-title">
-          <span className="font-headline-md font-medium text-on-surface">Gemini</span>
+          <span className="font-headline-md font-medium text-on-surface">Chat bot hỗ trợ các bác nông dân</span>
           <span className="material-symbols-outlined text-outline-variant cursor-pointer">expand_more</span>
         </div>
       </div>
