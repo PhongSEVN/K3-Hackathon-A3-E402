@@ -57,6 +57,11 @@ const SideNavRail: React.FC = () => {
             <span className="material-symbols-outlined icon">explore</span>
             <span className="font-label-md nav-label">{t.nav.explore}</span>
           </NavLink>
+
+          <NavLink to="/expert/dashboard" className={({isActive}) => `nav-item ${isActive ? 'active' : ''}`}>
+            <span className="material-symbols-outlined icon">verified_user</span>
+            <span className="font-label-md nav-label">Chuyên gia</span>
+          </NavLink>
         </nav>
       </div>
 
