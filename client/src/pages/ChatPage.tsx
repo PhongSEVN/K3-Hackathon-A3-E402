@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import gsap from 'gsap';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import ChatBubble from '../components/chat/ChatBubble';
 import PromptBar from '../components/shared/PromptBar';
 import { useLanguage } from '../context/LanguageContext';
@@ -10,7 +10,7 @@ import './ChatPage.css';
 const ChatPage: React.FC = () => {
   const { t } = useLanguage();
   const { chatId } = useParams();
-  const { getConversation } = useChatHistory();
+  const { conversations, getConversation } = useChatHistory();
   const conversation = getConversation(chatId);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -42,6 +42,28 @@ const ChatPage: React.FC = () => {
       
       <div className="chat-scroll-area custom-scrollbar" ref={containerRef}>
         <div className="chat-content">
+          {!chatId && conversations.length > 0 && (
+            <section className="chat-history-view" aria-label="Lịch sử trò chuyện">
+              <h2 className="font-headline-sm">Lịch sử trò chuyện</h2>
+              <div className="chat-history-grid">
+                {conversations.map((item) => (
+                  <Link className="chat-history-card" to={`/chat/${item.id}`} key={item.id}>
+                    <span className="font-title-md">{item.title}</span>
+                    <span className="font-body-sm chat-history-preview">
+                      {item.messages.at(-1)?.content ?? 'Chưa có tin nhắn'}
+                    </span>
+                    <span className="font-label-sm chat-history-time">{item.updatedAt}</span>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
+          {!chatId && conversations.length === 0 && (
+            <div className="chat-history-empty">
+              <span className="material-symbols-outlined">forum</span>
+              <p>Chưa có cuộc trò chuyện nào. Hãy nhập câu hỏi bên dưới để bắt đầu.</p>
+            </div>
+          )}
           {conversation?.messages.map((message) => (
             <div className="message-enter" key={message.id}>
               <ChatBubble isUser={message.role === 'user'}>

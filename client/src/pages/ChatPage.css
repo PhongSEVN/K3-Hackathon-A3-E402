@@ -42,6 +42,62 @@
   flex-shrink: 0;
 }
 
+.chat-history-view {
+  width: 100%;
+  padding: 24px 0;
+}
+
+.chat-history-view h2 {
+  margin: 0 0 16px;
+  color: var(--on-surface);
+}
+
+.chat-history-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.chat-history-card {
+  display: grid;
+  gap: 6px;
+  padding: 16px;
+  border: 1px solid var(--outline-variant);
+  border-radius: 16px;
+  background: var(--surface-container-low);
+  color: var(--on-surface);
+  text-decoration: none;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+.chat-history-card:hover {
+  border-color: var(--primary);
+  background: var(--surface-container);
+}
+
+.chat-history-preview {
+  overflow: hidden;
+  color: var(--on-surface-variant);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat-history-time {
+  color: var(--outline);
+}
+
+.chat-history-empty {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  padding: 64px 24px;
+  color: var(--on-surface-variant);
+  text-align: center;
+}
+
+.chat-history-empty .material-symbols-outlined {
+  font-size: 40px;
+}
+
 .custom-list {
   list-style: none;
   padding: 0;
