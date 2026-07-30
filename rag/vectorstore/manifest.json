@@ -1,0 +1,33 @@
+{
+  "chunk_count": 162,
+  "source_count": 21,
+  "crops": [
+    "cà phê",
+    "lúa",
+    "mía",
+    "ngô"
+  ],
+  "diseases": [
+    "Bệnh Sâu gai hispa",
+    "Bệnh cháy lá lớn",
+    "Bệnh chồi cỏ",
+    "Bệnh khảm lá",
+    "Bệnh lá khô",
+    "Bệnh rỉ sắt ngô",
+    "Bệnh than đen",
+    "Bệnh thối hom",
+    "Bệnh vàng lá tungro",
+    "Bệnh đốm lá xám",
+    "Bệnh đốm nâu",
+    "Vàng lá mía",
+    "bệnh phoma",
+    "bệnh phấn trắng",
+    "bệnh rỉ sắt",
+    "bệnh rỉ sắt nâu",
+    "bệnh sâu vẽ bùa",
+    "bệnh đạo ôn cổ bông",
+    "bệnh đạo ôn lá",
+    "bệnh đốm rong"
+  ],
+  "scoring": "BM25-lite lexical baseline; optional LLM synthesis happens in rag/app/agent.py"
+}
