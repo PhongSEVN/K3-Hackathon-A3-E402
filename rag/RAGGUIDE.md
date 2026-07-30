@@ -136,4 +136,4 @@ Các field quan trọng:
 - Không bịa thuốc hoặc liều lượng.
 - Nếu câu hỏi nằm ngoài cây trồng trong `/rag/data`, chuyển chuyên gia.
 - Nếu câu hỏi thiếu cây trồng/triệu chứng, hỏi lại.
-- Citation lấy từ file hoặc URL trong `sources.json`.
+- Citation (`source_urls`) là toàn bộ URL thật trong `sources.json` của thư mục bệnh đó — vì `text.txt` là bản tổng hợp từ nhiều nguồn, không có citation marker theo câu để quy về đúng 1 nguồn.

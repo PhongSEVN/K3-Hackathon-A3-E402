@@ -75,7 +75,7 @@ def analyze_question(question: str) -> QuestionAnalysis:
 def format_contexts(contexts: list[RetrievedChunk]) -> str:
     lines = []
     for index, item in enumerate(contexts, start=1):
-        source = item.citation.source_url or item.citation.relative_path
+        source = ", ".join(item.citation.source_urls) if item.citation.source_urls else item.citation.relative_path
         lines.append(
             f"[{index}] crop={item.crop}; disease={item.disease}; source={source}; "
             f"chunk={item.citation.chunk_index}\n{item.text}"
@@ -132,7 +132,8 @@ def fallback_answer(question: str, analysis: QuestionAnalysis, contexts: list[Re
 
     top = contexts[0]
     citations = "\n".join(
-        f"[{i}] {item.citation.source_file} - {item.citation.source_url or item.citation.relative_path}"
+        f"[{i}] {item.citation.source_file} - "
+        + (", ".join(item.citation.source_urls) if item.citation.source_urls else item.citation.relative_path)
         for i, item in enumerate(contexts[:3], start=1)
     )
     evidence = "\n".join(f"- {item.text[:260].strip()}..." for item in contexts[:2])

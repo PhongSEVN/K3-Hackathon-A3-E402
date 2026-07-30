@@ -123,9 +123,10 @@ class ChromaRetriever:
             score = round(similarity * 10, 4)
             if similarity < self.min_score:
                 continue
+            raw_urls = metadata.get("source_urls", "")
             citation = Citation(
                 source_file=metadata.get("source_file", ""),
-                source_url=metadata.get("source_url", ""),
+                source_urls=raw_urls.split(" | ") if raw_urls else [],
                 relative_path=metadata.get("relative_path", ""),
                 chunk_index=int(metadata.get("chunk_index", 0)),
             )
