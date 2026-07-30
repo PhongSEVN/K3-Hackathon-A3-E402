@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import ChatPage from './pages/ChatPage';
@@ -18,6 +19,8 @@ import './index.css';
 import './App.css';
 
 const AUTH_ROUTES = ['/login', '/register'];
+const ExpertDashboard = lazy(() => import('./ExpertApp').then(module => ({ default: module.ExpertDashboard })));
+const ExpertQueue = lazy(() => import('./ExpertApp').then(module => ({ default: module.ExpertQueue })));
 
 function AppShell() {
   const location = useLocation();
