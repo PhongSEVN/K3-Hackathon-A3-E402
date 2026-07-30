@@ -19,5 +19,7 @@ class Settings(BaseSettings):
     minio_bucket_plant_images: str = "plant-images"
     minio_bucket_avatars: str = "avatars"
 
+    disease_classifier_path: str = "../cv/results/resnet/best_model.pth"
+
 
 settings = Settings()

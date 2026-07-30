@@ -8,3 +8,4 @@ __pycache__/
 rag/vectorstore/chroma/
 *.idea
 *.vscode
+cv/results

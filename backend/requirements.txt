@@ -11,3 +11,7 @@ email-validator==2.2.0
 minio==7.2.13
 python-multipart==0.0.20
 chromadb>=1.0
+pillow==12.2.0
+
+# Disease classification model (ResNet50, cv/results/resnet). CPU-only build (inference only, no training here):
+# pip install torch==2.13.0 torchvision==0.28.0 --index-url https://download.pytorch.org/whl/cpu

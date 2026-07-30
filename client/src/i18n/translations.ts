@@ -19,6 +19,8 @@ export interface Translations {
     privacyLink: string;
     disclaimerMiddle: string;
     disclaimerSuffix: string;
+    analyzing: string;
+    predictionError: string;
   };
   auth: {
     brand: string;
@@ -123,6 +125,8 @@ export const translations: Record<Language, Translations> = {
       privacyLink: 'Chính sách quyền riêng tư',
       disclaimerMiddle: 'và',
       disclaimerSuffix: 'được áp dụng. Chat bot có thể trả lời sai, hãy kiểm tra lại thông tin quan trọng.',
+      analyzing: 'Đang phân tích ảnh...',
+      predictionError: 'Không thể phân tích ảnh, thử lại sau.',
     },
     auth: {
       brand: 'Chat bot hỗ trợ các bác nông dân',
@@ -229,6 +233,8 @@ export const translations: Record<Language, Translations> = {
       privacyLink: 'Privacy Policy',
       disclaimerMiddle: 'and',
       disclaimerSuffix: 'apply. The chatbot can make mistakes, always verify important information.',
+      analyzing: 'Analyzing image...',
+      predictionError: 'Could not analyze the image, please try again.',
     },
     auth: {
       brand: 'Farmer Support Chatbot',

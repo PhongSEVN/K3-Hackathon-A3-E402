@@ -120,3 +120,20 @@ export function triggerRetrain(token: string): Promise<RetrainResponse> {
     headers: authHeaders(token),
   });
 }
+
+export interface PredictionResponse {
+  image_url: string;
+  predicted_label: string;
+  confidence: number;
+}
+
+export function createPrediction(token: string, file: File): Promise<PredictionResponse> {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  return request<PredictionResponse>('/predictions', {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: formData,
+  });
+}
