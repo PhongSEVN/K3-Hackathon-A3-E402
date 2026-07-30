@@ -5,6 +5,8 @@ import { ApiError, createPrediction } from '../../lib/api';
 import './ImageUploadPanel.css';
 
 interface PredictionState {
+  feedbackId: string;
+  sessionId: string;
   label: string;
   confidence: number;
   imageUrl: string;
@@ -35,6 +37,8 @@ const ImageUploadPanel: React.FC<ImageUploadPanelProps> = ({ onPredicted }) => {
     try {
       const result = await createPrediction(token, file);
       const nextPrediction: PredictionState = {
+        feedbackId: result.feedback_id,
+        sessionId: result.session_id,
         label: result.predicted_label,
         confidence: result.confidence,
         imageUrl: result.image_url,

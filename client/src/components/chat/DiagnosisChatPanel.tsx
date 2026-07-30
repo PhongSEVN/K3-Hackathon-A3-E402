@@ -7,6 +7,8 @@ import { ApiError, sendChatMessage } from '../../lib/api';
 import './DiagnosisChatPanel.css';
 
 export interface DiagnosisInfo {
+  feedbackId: string;
+  sessionId: string;
   label: string;
   confidence: number;
   imageUrl: string;
@@ -26,7 +28,6 @@ const DiagnosisChatPanel: React.FC<DiagnosisChatPanelProps> = ({ diagnosis }) =>
   const { token } = useAuth();
   const { t } = useLanguage();
   const { addConversation } = useChatHistory();
-  const sessionIdRef = useRef(crypto.randomUUID());
   const handledImageRef = useRef<string | null>(null);
 
   const [messages, setMessages] = useState<ChatEntry[]>([]);
@@ -35,7 +36,8 @@ const DiagnosisChatPanel: React.FC<DiagnosisChatPanelProps> = ({ diagnosis }) =>
   const [error, setError] = useState<string | null>(null);
 
   const sendMessage = async (question: string) => {
-    if (!token) return;
+    if (!token || !diagnosis) return;
+    const activeDiagnosis = diagnosis;
 
     setError(null);
     setIsSending(true);
@@ -43,19 +45,19 @@ const DiagnosisChatPanel: React.FC<DiagnosisChatPanelProps> = ({ diagnosis }) =>
     setMessages((prev) => [...prev, userMessage]);
     try {
       const response = await sendChatMessage(token, {
-        session_id: sessionIdRef.current,
+        session_id: activeDiagnosis.sessionId,
         question,
-        diease: diagnosis?.label,
-        image: diagnosis?.imageUrl,
+        diease: activeDiagnosis.label,
+        image: activeDiagnosis.imageUrl,
       });
       const assistantMessage: ChatEntry = { id: response.id, role: 'assistant', content: response.answer ?? '' };
       setMessages((prev) => {
         const nextMessages = [...prev, assistantMessage];
         addConversation({
-          id: sessionIdRef.current,
-          title: diagnosis?.label ? `Tư vấn ${diagnosis.label.replaceAll('_', ' ')}` : 'Chat mới',
+          id: activeDiagnosis.sessionId,
+          title: `Tư vấn ${activeDiagnosis.label.replaceAll('_', ' ')}`,
           updatedAt: 'Vừa xong',
-          imageUrl: diagnosis?.imageUrl,
+          imageUrl: activeDiagnosis.imageUrl,
           messages: nextMessages as any, // Cast if types don't exactly match
         });
         return nextMessages;
@@ -70,6 +72,8 @@ const DiagnosisChatPanel: React.FC<DiagnosisChatPanelProps> = ({ diagnosis }) =>
   useEffect(() => {
     if (!diagnosis || handledImageRef.current === diagnosis.imageUrl) return;
     handledImageRef.current = diagnosis.imageUrl;
+    setMessages([]);
+    setError(null);
     // User will now manually type and send their question
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [diagnosis?.imageUrl]);

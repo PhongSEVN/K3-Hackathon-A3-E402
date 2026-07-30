@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
-import { getAgronomistCases, updateAgronomistCase, type AgronomistCaseResponse, type AgronomistCaseStatus } from './lib/api';
+import { getAgronomistCase, getAgronomistCases, updateAgronomistCase, type AgronomistCaseResponse, type AgronomistCaseStatus, type ChatMessageResponse } from './lib/api';
 import './ExpertApp.css';
 
 type Status = 'pending' | 'processing' | 'responded';
@@ -48,14 +48,25 @@ function Modal({ item, close, onUpdated, token }: { item: Case; close: () => voi
   const [diagnosis, setDiagnosis] = useState(item.confirmed_label ?? item.diagnosis);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [messages, setMessages] = useState<ChatMessageResponse[]>([]);
+  const [loadingMessages, setLoadingMessages] = useState(true);
   useEffect(() => { const fn = (e: KeyboardEvent) => e.key === 'Escape' && close(); addEventListener('keydown', fn); return () => removeEventListener('keydown', fn); }, [close]);
+  useEffect(() => {
+    let active = true;
+    setLoadingMessages(true);
+    getAgronomistCase(token, item.id)
+      .then(detail => { if (active) setMessages(detail.messages); })
+      .catch(err => { if (active) setError(err instanceof Error ? err.message : 'Không thể tải lịch sử trò chuyện.'); })
+      .finally(() => { if (active) setLoadingMessages(false); });
+    return () => { active = false; };
+  }, [item.id, token]);
   const submit = async (event: React.FormEvent) => {
     event.preventDefault(); setSaving(true); setError('');
     try { const updated = await updateAgronomistCase(token, item.id, { comment, confirmed_label: diagnosis, status: 'answered' }); onUpdated(normalizeCase(updated)); close(); }
     catch (err) { setError(err instanceof Error ? err.message : 'Không thể gửi phản hồi.'); }
     finally { setSaving(false); }
   };
-  return <div className="ep-backdrop" onMouseDown={e => e.target === e.currentTarget && close()}><section className="ep-modal" role="dialog" aria-modal="true"><header><div><small>CHI TIẾT CA BỆNH</small><h2>{item.id.slice(0, 8).toUpperCase()} · {item.crop}</h2></div><button onClick={close} aria-label="Đóng"><Icon>close</Icon></button></header><div className="ep-modal-grid"><div className="ep-case-preview">{item.image ? <img className="ep-plant-preview ep-plant-image" src={item.image} alt={`Ảnh ${item.crop}`} /> : <div className="ep-plant-preview"><Icon>image</Icon><span>Không có ảnh cây trồng</span></div>}<dl><div><dt>Người gửi</dt><dd>{item.sender}</dd></div><div><dt>Loại cây</dt><dd>{item.crop}</dd></div><div><dt>AI đề xuất</dt><dd>{item.diagnosis} · {item.confidencePercent}%</dd></div><div><dt>Trạng thái</dt><dd><StatusPill status={item.displayStatus} /></dd></div></dl></div><form className="ep-form" onSubmit={submit}><h3>Phản hồi chuyên gia</h3><p>Ý kiến của bạn sẽ được lưu vào ca bệnh.</p><label>Nhận xét chuyên môn<textarea autoFocus required value={comment} onChange={e => setComment(e.target.value)} placeholder="Mô tả tình trạng và nhận định của bạn..." /></label><label>Chẩn đoán<input value={diagnosis} onChange={e => setDiagnosis(e.target.value)} /></label>{error && <p className="ep-error">{error}</p>}<button className="ep-submit" disabled={saving}>{saving ? <><Icon>progress_activity</Icon>Đang gửi...</> : <>Gửi phản hồi<Icon>send</Icon></>}</button></form></div></section></div>;
+  return <div className="ep-backdrop" onMouseDown={e => e.target === e.currentTarget && close()}><section className="ep-modal" role="dialog" aria-modal="true"><header><div><small>CHI TIẾT CA BỆNH</small><h2>{item.id.slice(0, 8).toUpperCase()} · {item.crop}</h2></div><button onClick={close} aria-label="Đóng"><Icon>close</Icon></button></header><div className="ep-modal-grid"><div className="ep-case-preview">{item.image ? <img className="ep-plant-preview ep-plant-image" src={item.image} alt={`Ảnh ${item.crop}`} /> : <div className="ep-plant-preview"><Icon>image</Icon><span>Không có ảnh cây trồng</span></div>}<dl><div><dt>Người gửi</dt><dd>{item.sender}</dd></div><div><dt>Loại cây</dt><dd>{item.crop}</dd></div><div><dt>AI đề xuất</dt><dd>{item.diagnosis} · {item.confidencePercent}%</dd></div><div><dt>Trạng thái</dt><dd><StatusPill status={item.displayStatus} /></dd></div></dl><section className="ep-history"><h3>Lịch sử trò chuyện</h3>{loadingMessages ? <p className="ep-muted">Đang tải...</p> : messages.length ? messages.map(message => <article key={message.id}><div><b>Nông dân</b><p>{message.question}</p></div>{message.answer && <div className="assistant"><b>Trợ lý AI</b><p>{message.answer}</p></div>}</article>) : <p className="ep-muted">Ca bệnh này chưa có tin nhắn.</p>}</section></div><form className="ep-form" onSubmit={submit}><h3>Phản hồi chuyên gia</h3><p>Ý kiến của bạn sẽ được lưu vào ca bệnh.</p><label>Nhận xét chuyên môn<textarea autoFocus required value={comment} onChange={e => setComment(e.target.value)} placeholder="Mô tả tình trạng và nhận định của bạn..." /></label><label>Chẩn đoán<input value={diagnosis} onChange={e => setDiagnosis(e.target.value)} /></label>{error && <p className="ep-error">{error}</p>}<button className="ep-submit" disabled={saving}>{saving ? <><Icon>progress_activity</Icon>Đang gửi...</> : <>Gửi phản hồi<Icon>send</Icon></>}</button></form></div></section></div>;
 }
 
 function lastSevenDays(cases: Case[]) {

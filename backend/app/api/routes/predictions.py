@@ -42,15 +42,21 @@ async def create_prediction(
 
     image_url = get_presigned_url(settings.minio_bucket_plant_images, object_name)
 
-    db.add(
-        Feedback(
-            user_id=current_user.id,
-            session_id=uuid.uuid4(),
-            image=object_name,
-            predicted_id=predicted_label,
-            predicted_confident=confidence,
-        )
+    feedback = Feedback(
+        user_id=current_user.id,
+        session_id=uuid.uuid4(),
+        image=object_name,
+        predicted_id=predicted_label,
+        predicted_confident=confidence,
     )
+    db.add(feedback)
     await db.commit()
+    await db.refresh(feedback)
 
-    return PredictionResponse(image_url=image_url, predicted_label=predicted_label, confidence=confidence)
+    return PredictionResponse(
+        feedback_id=feedback.id,
+        session_id=feedback.session_id,
+        image_url=image_url,
+        predicted_label=predicted_label,
+        confidence=confidence,
+    )

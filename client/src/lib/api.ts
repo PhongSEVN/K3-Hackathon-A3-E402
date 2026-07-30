@@ -122,6 +122,8 @@ export function triggerRetrain(token: string): Promise<RetrainResponse> {
 }
 
 export interface PredictionResponse {
+  feedback_id: string;
+  session_id: string;
   image_url: string;
   predicted_label: string;
   confidence: number;
@@ -143,6 +145,7 @@ export type AgronomistCasePriority = 'low' | 'normal' | 'high' | 'urgent';
 
 export interface AgronomistCaseResponse {
   id: string;
+  session_id: string;
   sender: string;
   image: string;
   predicted_label: string | null;
@@ -155,8 +158,18 @@ export interface AgronomistCaseResponse {
   updated_at: string;
 }
 
+export interface AgronomistCaseDetailResponse extends AgronomistCaseResponse {
+  messages: ChatMessageResponse[];
+}
+
 export function getAgronomistCases(token: string): Promise<AgronomistCaseResponse[]> {
   return request<AgronomistCaseResponse[]>('/agronomist/cases', {
+    headers: authHeaders(token),
+  });
+}
+
+export function getAgronomistCase(token: string, caseId: string): Promise<AgronomistCaseDetailResponse> {
+  return request<AgronomistCaseDetailResponse>(`/agronomist/cases/${caseId}`, {
     headers: authHeaders(token),
   });
 }

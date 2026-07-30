@@ -11,6 +11,7 @@ export interface ChatHistoryItem {
   title: string;
   updatedAt: string;
   imageUrl?: string;
+  isSample?: boolean;
   messages: ChatMessage[];
 }
 
@@ -21,45 +22,27 @@ interface ChatHistoryContextValue {
 }
 
 const STORAGE_KEY = 'hackathon_mini_chat_history';
-
+const SAMPLE_IDS = new Set(['plant-leaf-disease', 'corn-rust', 'coffee-rust']);
 const sampleConversations: ChatHistoryItem[] = [
   {
-    id: 'plant-leaf-disease',
-    title: 'Nhận biết bệnh trên lá cây',
-    updatedAt: 'Hôm nay',
+    id: 'plant-leaf-disease', title: 'Nhận biết bệnh trên lá cây', updatedAt: 'Mẫu', isSample: true,
     messages: [
-      { id: '1', role: 'user', content: 'Lá lúa có vết hình thoi, giữa xám tro và viền nâu thì có thể bị gì?' },
-      {
-        id: '2',
-        role: 'assistant',
-        content: 'Các dấu hiệu bạn mô tả có thể phù hợp với bệnh đạo ôn lá. Hãy kiểm tra thêm xem vết bệnh có lan nhanh khi thời tiết ẩm hay không và gửi ảnh cận cảnh để được tư vấn chính xác hơn.',
-      },
+      { id: 'sample-1-user', role: 'user', content: 'Lá lúa có vết hình thoi, giữa xám tro và viền nâu thì có thể bị gì?' },
+      { id: 'sample-1-ai', role: 'assistant', content: 'Các dấu hiệu bạn mô tả có thể phù hợp với bệnh đạo ôn lá. Hãy kiểm tra thêm xem vết bệnh có lan nhanh khi thời tiết ẩm hay không và gửi ảnh cận cảnh để được tư vấn chính xác hơn.' },
     ],
   },
   {
-    id: 'corn-rust',
-    title: 'Cách xử lý rỉ sắt trên ngô',
-    updatedAt: 'Hôm qua',
+    id: 'corn-rust', title: 'Cách xử lý rỉ sắt trên ngô', updatedAt: 'Mẫu', isSample: true,
     messages: [
-      { id: '1', role: 'user', content: 'Lá ngô xuất hiện các chấm nâu cam nhỏ ở cả hai mặt lá.' },
-      {
-        id: '2',
-        role: 'assistant',
-        content: 'Đây có thể là triệu chứng bệnh rỉ sắt ngô. Bạn nên theo dõi mức độ lan rộng, vệ sinh tàn dư bệnh và tham khảo cán bộ bảo vệ thực vật địa phương trước khi dùng thuốc.',
-      },
+      { id: 'sample-2-user', role: 'user', content: 'Lá ngô xuất hiện các chấm nâu cam nhỏ ở cả hai mặt lá.' },
+      { id: 'sample-2-ai', role: 'assistant', content: 'Đây có thể là triệu chứng bệnh rỉ sắt ngô. Bạn nên theo dõi mức độ lan rộng, vệ sinh tàn dư bệnh và tham khảo cán bộ bảo vệ thực vật địa phương trước khi dùng thuốc.' },
     ],
   },
   {
-    id: 'coffee-rust',
-    title: 'Đốm vàng cam trên cà phê',
-    updatedAt: 'Tuần trước',
+    id: 'coffee-rust', title: 'Đốm vàng cam trên cà phê', updatedAt: 'Mẫu', isSample: true,
     messages: [
-      { id: '1', role: 'user', content: 'Mặt dưới lá cà phê có nhiều bột màu vàng cam.' },
-      {
-        id: '2',
-        role: 'assistant',
-        content: 'Triệu chứng này thường gặp ở bệnh rỉ sắt cà phê. Nên tỉa cành cho vườn thông thoáng, thu gom lá bệnh và xác nhận lại với chuyên gia nếu bệnh lan mạnh.',
-      },
+      { id: 'sample-3-user', role: 'user', content: 'Mặt dưới lá cà phê có nhiều bột màu vàng cam.' },
+      { id: 'sample-3-ai', role: 'assistant', content: 'Triệu chứng này thường gặp ở bệnh rỉ sắt cà phê. Nên tỉa cành cho vườn thông thoáng, thu gom lá bệnh và xác nhận lại với chuyên gia nếu bệnh lan mạnh.' },
     ],
   },
 ];
@@ -69,7 +52,11 @@ const ChatHistoryContext = createContext<ChatHistoryContextValue | undefined>(un
 function loadConversations(): ChatHistoryItem[] {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
-    return stored ? (JSON.parse(stored) as ChatHistoryItem[]) : sampleConversations;
+    const saved = stored ? (JSON.parse(stored) as ChatHistoryItem[]) : [];
+    const realConversations = saved.filter(
+      conversation => !conversation.isSample && !SAMPLE_IDS.has(conversation.id),
+    );
+    return [...realConversations, ...sampleConversations];
   } catch {
     return sampleConversations;
   }
