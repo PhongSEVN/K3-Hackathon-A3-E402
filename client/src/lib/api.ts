@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/api';
 
 export type UserRole = 'admin' | 'farmer' | 'agronomist';
 
@@ -135,5 +135,23 @@ export function createPrediction(token: string, file: File): Promise<PredictionR
     method: 'POST',
     headers: authHeaders(token),
     body: formData,
+  });
+}
+
+export interface ChatApiMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+export interface ChatResponse {
+  answer: string;
+  model: string;
+}
+
+export function sendChatMessage(message: string, history: ChatApiMessage[]): Promise<ChatResponse> {
+  return request<ChatResponse>('/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message, history }),
   });
 }

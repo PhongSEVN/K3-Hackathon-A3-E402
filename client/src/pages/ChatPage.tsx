@@ -29,7 +29,7 @@ const ChatPage: React.FC = () => {
         }
       }, 100);
     }
-  }, []);
+  }, [conversation?.messages.length]);
 
   return (
     <div className="chat-page-container">

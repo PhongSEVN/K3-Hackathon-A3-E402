@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { sendChatMessage } from '../lib/api';
 
 export interface ChatMessage {
   id: string;
@@ -16,6 +17,7 @@ export interface ChatHistoryItem {
 interface ChatHistoryContextValue {
   conversations: ChatHistoryItem[];
   getConversation: (id: string | undefined) => ChatHistoryItem | undefined;
+  sendMessage: (conversationId: string | undefined, content: string) => Promise<string>;
 }
 
 const STORAGE_KEY = 'hackathon_mini_chat_history';
@@ -74,19 +76,77 @@ function loadConversations(): ChatHistoryItem[] {
 }
 
 export function ChatHistoryProvider({ children }: { children: ReactNode }) {
-  const [conversations] = useState<ChatHistoryItem[]>(loadConversations);
+  const [conversations, setConversations] = useState<ChatHistoryItem[]>(loadConversations);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(conversations));
   }, [conversations]);
 
-  const value = useMemo(
-    () => ({
+  const value = useMemo(() => {
+    const sendMessage = async (conversationId: string | undefined, content: string): Promise<string> => {
+      const trimmed = content.trim();
+      const id = conversationId ?? crypto.randomUUID();
+      const existing = conversations.find((item) => item.id === id);
+      const history = existing?.messages ?? [];
+      const userMessage: ChatMessage = { id: crypto.randomUUID(), role: 'user', content: trimmed };
+
+      setConversations((current) => {
+        const found = current.find((item) => item.id === id);
+        if (found) {
+          return current.map((item) =>
+            item.id === id
+              ? { ...item, updatedAt: 'Vừa xong', messages: [...item.messages, userMessage] }
+              : item,
+          );
+        }
+        return [
+          {
+            id,
+            title: trimmed.length > 48 ? `${trimmed.slice(0, 48)}…` : trimmed,
+            updatedAt: 'Vừa xong',
+            messages: [userMessage],
+          },
+          ...current,
+        ];
+      });
+
+      try {
+        const response = await sendChatMessage(
+          trimmed,
+          history.map(({ role, content: historyContent }) => ({ role, content: historyContent })),
+        );
+        const assistantMessage: ChatMessage = {
+          id: crypto.randomUUID(),
+          role: 'assistant',
+          content: response.answer,
+        };
+        setConversations((current) =>
+          current.map((item) =>
+            item.id === id ? { ...item, messages: [...item.messages, assistantMessage] } : item,
+          ),
+        );
+      } catch (error) {
+        const detail = error instanceof Error ? error.message : 'Không thể kết nối tới mô hình.';
+        const errorMessage: ChatMessage = {
+          id: crypto.randomUUID(),
+          role: 'assistant',
+          content: `Không thể trả lời lúc này: ${detail}`,
+        };
+        setConversations((current) =>
+          current.map((item) =>
+            item.id === id ? { ...item, messages: [...item.messages, errorMessage] } : item,
+          ),
+        );
+      }
+      return id;
+    };
+
+    return {
       conversations,
       getConversation: (id: string | undefined) => conversations.find((conversation) => conversation.id === id),
-    }),
-    [conversations],
-  );
+      sendMessage,
+    };
+  }, [conversations]);
 
   return <ChatHistoryContext.Provider value={value}>{children}</ChatHistoryContext.Provider>;
 }
