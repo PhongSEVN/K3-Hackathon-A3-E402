@@ -15,9 +15,10 @@ PHÂN TÍCH:
 NGỮ CẢNH:
 {contexts}
 
-Hãy trả lời theo cấu trúc:
+Hãy trả lời bằng Markdown theo cấu trúc:
 1. Chẩn đoán khả năng
 2. Dấu hiệu đối chiếu
 3. Khuyến nghị xử lý
 4. Khi nào cần hỏi chuyên gia
-5. Nguồn"""
+
+Không tự thêm mục "Nguồn" - phần đó sẽ được hệ thống thêm vào riêng."""

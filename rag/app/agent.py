@@ -104,7 +104,7 @@ def format_contexts(contexts: list[RetrievedChunk]) -> str:
 
 def call_openai(prompt: str) -> str:
     load_env_file()
-    api_key = os.getenv("API_KEY")
+    api_key = os.getenv("API_KEY_OPEN_AI")
     if not api_key:
         return ""
     payload = {

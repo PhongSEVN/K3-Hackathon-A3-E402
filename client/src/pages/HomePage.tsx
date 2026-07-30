@@ -1,19 +1,20 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import ShaderCanvas from '../components/shared/ShaderCanvas';
-import PromptBar from '../components/shared/PromptBar';
 import ImageUploadPanel from '../components/shared/ImageUploadPanel';
+import DiagnosisChatPanel, { type DiagnosisInfo } from '../components/chat/DiagnosisChatPanel';
 import { useLanguage } from '../context/LanguageContext';
 import './HomePage.css';
 
 const HomePage: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const { t } = useLanguage();
+  const [diagnosis, setDiagnosis] = useState<DiagnosisInfo | null>(null);
 
   useEffect(() => {
     if (containerRef.current) {
       const elements = containerRef.current.querySelectorAll('.animate-item');
-      gsap.fromTo(elements, 
+      gsap.fromTo(elements,
         { y: 40, opacity: 0 },
         { y: 0, opacity: 1, duration: 0.8, stagger: 0.1, ease: 'power2.out', delay: 0.2 }
       );
@@ -25,20 +26,20 @@ const HomePage: React.FC = () => {
       <div className="shader-bg animate-fade-in-up">
         <ShaderCanvas />
       </div>
-      
+
       <div className="home-content">
         <div className="greeting-section animate-item">
           <h1 className="font-display-lg greeting-title">
             {t.home.greeting}
           </h1>
         </div>
-        
+
         <div className="split-panels animate-item">
           <div className="split-panel split-panel-upload">
-            <ImageUploadPanel />
+            <ImageUploadPanel onPredicted={setDiagnosis} />
           </div>
           <div className="split-panel split-panel-prompt">
-            <PromptBar variant="premium" />
+            <DiagnosisChatPanel diagnosis={diagnosis} />
           </div>
         </div>
       </div>

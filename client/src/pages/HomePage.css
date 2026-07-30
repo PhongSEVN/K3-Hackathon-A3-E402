@@ -5,7 +5,7 @@
   align-items: center;
   justify-content: center;
   position: relative;
-  overflow: hidden;
+  overflow-x: clip; /* Fix for sticky, was overflow: hidden */
 }
 
 @keyframes float-breathe {
@@ -31,8 +31,8 @@
 
 .home-content {
   width: 100%;
-  max-width: 1080px;
-  padding: 0 24px;
+  max-width: 1440px; /* Instead of 1080px, make it wider, but not excessively wide */
+  padding: 0 48px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -48,7 +48,7 @@
   width: 100%;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  align-items: stretch;
+  align-items: stretch; /* Stretch so the right panel can vertically center the input based on the left panel's height */
   gap: 24px;
 }
 
@@ -59,7 +59,12 @@
 
 .split-panel-prompt {
   flex-direction: column;
-  justify-content: center;
+}
+
+.split-panel-upload {
+  align-self: flex-start;
+  position: sticky;
+  top: 24px;
 }
 
 @media (max-width: 860px) {

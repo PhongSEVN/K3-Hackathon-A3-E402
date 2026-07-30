@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes import admin, agronomist, auth, health, predictions, users
+from app.api.routes import admin, agronomist, auth, chat, health, predictions, users
 from app.core.config import settings
 from app.core.storage import ensure_buckets
 
@@ -29,3 +29,4 @@ app.include_router(users.router)
 app.include_router(admin.router)
 app.include_router(agronomist.router)
 app.include_router(predictions.router)
+app.include_router(chat.router)

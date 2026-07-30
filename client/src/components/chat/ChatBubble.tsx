@@ -1,4 +1,6 @@
 import React from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface ChatBubbleProps {
   isUser: boolean;
@@ -21,18 +23,15 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ isUser, children }) => {
           justifyContent: 'center',
           flexShrink: 0,
           marginRight: '16px',
-          marginTop: '4px'
+          marginTop: '4px',
+          backgroundColor: 'var(--surface-container-highest)',
         }}>
-          <img 
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuD5h8IM0SYywZlDgvvvYc_AnKEBdwSi9NXDhxmx4GO44eD766tqicF4Qt8j724g1fgddYBgUJxXx1Ptc5SQHijkFQFtRFgs4N7xC--I0IWB9aQNkqa6AindDn-APFHaBszGqEoz5DLOC6kDJKWaeGwbfWKa1h-1-uHaY6U32TYZAhFIOZUXNJbHLV78tXN5Ml3UukuZPmeLwZnHk-CkugKLduEJhccmaamfEI-8xBPP0RCQDe7Ei0rp" 
-            alt="AI Avatar" 
-            style={{ width: '24px', height: '24px' }}
-          />
+          <span className="material-symbols-outlined" style={{ fontSize: '24px', color: 'var(--primary)' }}>psychology</span>
         </div>
       )}
       
       <div 
-        className={isUser ? 'font-body-md' : 'font-body-md'}
+        className={isUser ? 'font-body-md' : 'font-body-md markdown-body'}
         style={{
           maxWidth: '85%',
           backgroundColor: isUser ? 'var(--surface-container-high)' : 'transparent',
@@ -41,7 +40,11 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({ isUser, children }) => {
           color: 'var(--on-surface)'
         }}
       >
-        {children}
+        {typeof children === 'string' && !isUser ? (
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>{children}</ReactMarkdown>
+        ) : (
+          <div style={{ whiteSpace: 'pre-line' }}>{children}</div>
+        )}
       </div>
     </div>
   );

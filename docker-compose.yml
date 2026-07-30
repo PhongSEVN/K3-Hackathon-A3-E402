@@ -36,6 +36,21 @@ services:
       timeout: 5s
       retries: 10
 
+  chroma:
+    image: chromadb/chroma:latest
+    container_name: hackathon-mini-chroma
+    restart: unless-stopped
+    environment:
+      IS_PERSISTENT: "TRUE"
+      ANONYMIZED_TELEMETRY: "FALSE"
+    ports:
+      - "${CHROMA_PORT:-8001}:8000"
+    volumes:
+      - chroma_data:/chroma/chroma
+    # No healthcheck: the official image has no shell tooling (no curl/wget/python)
+    # to probe itself with. Verified reachable externally: GET /api/v2/heartbeat.
+
 volumes:
   postgres_data:
   minio_data:
+  chroma_data:

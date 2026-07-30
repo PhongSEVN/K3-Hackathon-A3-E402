@@ -1,0 +1,93 @@
+.diagnosis-chat-panel {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-height: 320px;
+  border-radius: 32px;
+  background-color: var(--surface-container-lowest);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05), 0 1px 4px rgba(0, 0, 0, 0.02);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.diagnosis-chat-panel.is-empty {
+  min-height: auto;
+  height: 100%;
+  justify-content: center;
+  background-color: transparent;
+  box-shadow: none;
+}
+
+.diagnosis-chat-panel.is-empty .diagnosis-chat-input-row {
+  border: 1px solid var(--outline-variant);
+  border-radius: 32px;
+  background-color: var(--surface-container-lowest);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.diagnosis-chat-messages {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 24px 24px 8px;
+  text-align: left;
+}
+
+.diagnosis-chat-empty {
+  margin: 0;
+  padding: 24px 0;
+  text-align: center;
+}
+
+.diagnosis-chat-thinking {
+  margin: 0 0 16px;
+}
+
+.diagnosis-chat-error {
+  color: var(--error);
+  margin: 0 0 16px;
+}
+
+.diagnosis-chat-input-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--outline-variant);
+}
+
+.diagnosis-chat-input {
+  flex-grow: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--on-surface);
+  padding: 8px 4px;
+}
+
+.diagnosis-chat-input::placeholder {
+  color: var(--text-secondary);
+}
+
+.diagnosis-chat-send-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  color: var(--on-surface-variant);
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.diagnosis-chat-send-btn:hover:not(:disabled) {
+  background-color: var(--surface-container-high);
+  color: var(--primary);
+}
+
+.diagnosis-chat-send-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

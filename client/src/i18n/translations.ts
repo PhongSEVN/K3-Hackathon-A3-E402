@@ -21,6 +21,10 @@ export interface Translations {
     disclaimerSuffix: string;
     analyzing: string;
     predictionError: string;
+    diagnosisQuestion: string;
+    chatEmptyHint: string;
+    chatThinking: string;
+    chatError: string;
   };
   auth: {
     brand: string;
@@ -127,6 +131,10 @@ export const translations: Record<Language, Translations> = {
       disclaimerSuffix: 'được áp dụng. Chat bot có thể trả lời sai, hãy kiểm tra lại thông tin quan trọng.',
       analyzing: 'Đang phân tích ảnh...',
       predictionError: 'Không thể phân tích ảnh, thử lại sau.',
+      diagnosisQuestion: 'Ảnh vừa gửi cho thấy dấu hiệu bệnh gì và cách xử lý ra sao?',
+      chatEmptyHint: 'Tải ảnh cây trồng lên để nhận chẩn đoán, hoặc đặt câu hỏi bên dưới.',
+      chatThinking: 'Đang trả lời...',
+      chatError: 'Không thể gửi câu hỏi, thử lại sau.',
     },
     auth: {
       brand: 'Chat bot hỗ trợ các bác nông dân',
@@ -235,6 +243,10 @@ export const translations: Record<Language, Translations> = {
       disclaimerSuffix: 'apply. The chatbot can make mistakes, always verify important information.',
       analyzing: 'Analyzing image...',
       predictionError: 'Could not analyze the image, please try again.',
+      diagnosisQuestion: 'What disease does this photo show, and how should it be treated?',
+      chatEmptyHint: 'Upload a plant photo to get a diagnosis, or ask a question below.',
+      chatThinking: 'Thinking...',
+      chatError: 'Could not send the message, please try again.',
     },
     auth: {
       brand: 'Farmer Support Chatbot',

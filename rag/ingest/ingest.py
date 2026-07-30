@@ -203,10 +203,9 @@ def write_index(chunks: list[Chunk], index_path: Path = INDEX_PATH) -> None:
 
 def build_chroma_index(chunks: list[Chunk]) -> None:
     sys.path.insert(0, str(ROOT.parent))
-    from rag.app.chroma_retriever import PERSIST_DIR, COLLECTION_NAME, OpenAIEmbeddingFunction
-    import chromadb
+    from rag.app.chroma_retriever import COLLECTION_NAME, OpenAIEmbeddingFunction, get_chroma_client
 
-    client = chromadb.PersistentClient(path=str(PERSIST_DIR))
+    client = get_chroma_client()
     collection = client.get_or_create_collection(
         name=COLLECTION_NAME,
         embedding_function=OpenAIEmbeddingFunction(),
@@ -230,7 +229,7 @@ def build_chroma_index(chunks: list[Chunk]) -> None:
                 for chunk in batch
             ],
         )
-    print(f"Upserted {len(chunks)} chunks into Chroma collection '{COLLECTION_NAME}' at {PERSIST_DIR}")
+    print(f"Upserted {len(chunks)} chunks into Chroma collection '{COLLECTION_NAME}'")
 
 
 def idf_stats(chunks: list[Chunk]) -> dict[str, float]:
