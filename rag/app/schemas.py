@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 @dataclass
 class Citation:
     source_file: str
-    source_url: str
+    source_urls: list[str]
     relative_path: str
     chunk_index: int
 

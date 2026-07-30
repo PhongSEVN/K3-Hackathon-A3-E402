@@ -26,7 +26,7 @@ class Chunk:
     crop: str
     disease: str
     source_file: str
-    source_url: str
+    source_urls: list[str]
     relative_path: str
     chunk_index: int
     token_count: int
@@ -55,13 +55,32 @@ def load_source_maps(data_dir: Path) -> dict[Path, dict[str, str]]:
     return maps
 
 
-def source_for(path: Path, source_maps: dict[Path, dict[str, str]]) -> str:
+def is_real_url(value: str) -> bool:
+    return value.startswith("http://") or value.startswith("https://")
+
+
+def sources_for(path: Path, source_maps: dict[Path, dict[str, str]]) -> list[str]:
+    """Real source URLs for a document.
+
+    `sources.json` maps original PDF filenames to their article URL, but the
+    file actually ingested is a curated `text.txt` that synthesizes several
+    of those PDFs with no per-sentence citation marker. So for anything that
+    isn't a direct filename match to a real URL, we surface every real URL
+    in that folder's `sources.json` rather than a single generic fallback.
+    """
     for parent in [path.parent, *path.parents]:
         mapping = source_maps.get(parent)
         if not mapping:
             continue
-        return mapping.get(path.name) or mapping.get("*") or ""
-    return ""
+        direct = mapping.get(path.name)
+        if direct and is_real_url(direct):
+            return [direct]
+        real_urls = [value for key, value in mapping.items() if key != "*" and is_real_url(value)]
+        if real_urls:
+            return real_urls
+        fallback = direct or mapping.get("*") or ""
+        return [fallback] if fallback else []
+    return []
 
 
 def infer_crop_and_disease(path: Path, data_dir: Path) -> tuple[str, str]:
@@ -147,7 +166,7 @@ def build_chunks(data_dir: Path, include_binary: bool = False) -> list[Chunk]:
     chunks: list[Chunk] = []
     for path, text in iter_documents(data_dir, include_binary=include_binary):
         crop, disease = infer_crop_and_disease(path, data_dir)
-        source_url = source_for(path, source_maps)
+        source_urls = sources_for(path, source_maps)
         rel = path.relative_to(ROOT).as_posix()
         for index, chunk_text in enumerate(split_chunks(text)):
             chunk_id = f"{len(chunks):06d}"
@@ -158,7 +177,7 @@ def build_chunks(data_dir: Path, include_binary: bool = False) -> list[Chunk]:
                     crop=crop,
                     disease=disease,
                     source_file=path.name,
-                    source_url=source_url,
+                    source_urls=source_urls,
                     relative_path=rel,
                     chunk_index=index,
                     token_count=len(tokenize(chunk_text)),
@@ -182,6 +201,38 @@ def write_index(chunks: list[Chunk], index_path: Path = INDEX_PATH) -> None:
     MANIFEST_PATH.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
+def build_chroma_index(chunks: list[Chunk]) -> None:
+    sys.path.insert(0, str(ROOT.parent))
+    from rag.app.chroma_retriever import PERSIST_DIR, COLLECTION_NAME, OpenAIEmbeddingFunction
+    import chromadb
+
+    client = chromadb.PersistentClient(path=str(PERSIST_DIR))
+    collection = client.get_or_create_collection(
+        name=COLLECTION_NAME,
+        embedding_function=OpenAIEmbeddingFunction(),
+        metadata={"hnsw:space": "cosine"},
+    )
+    batch_size = 100
+    for start in range(0, len(chunks), batch_size):
+        batch = chunks[start : start + batch_size]
+        collection.upsert(
+            ids=[chunk.id for chunk in batch],
+            documents=[chunk.text for chunk in batch],
+            metadatas=[
+                {
+                    "crop": chunk.crop,
+                    "disease": chunk.disease,
+                    "source_file": chunk.source_file,
+                    "source_urls": " | ".join(chunk.source_urls),
+                    "relative_path": chunk.relative_path,
+                    "chunk_index": chunk.chunk_index,
+                }
+                for chunk in batch
+            ],
+        )
+    print(f"Upserted {len(chunks)} chunks into Chroma collection '{COLLECTION_NAME}' at {PERSIST_DIR}")
+
+
 def idf_stats(chunks: list[Chunk]) -> dict[str, float]:
     doc_count = len(chunks)
     df: Counter[str] = Counter()
@@ -198,11 +249,19 @@ def main() -> None:
     parser.add_argument("--data-dir", type=Path, default=DATA_DIR)
     parser.add_argument("--out", type=Path, default=INDEX_PATH)
     parser.add_argument("--include-binary", action="store_true", help="Also try PDF/DOCX extraction.")
+    parser.add_argument(
+        "--chroma",
+        action="store_true",
+        help="Also embed chunks into a persistent ChromaDB collection (needs API_KEY + network).",
+    )
     args = parser.parse_args()
 
     chunks = build_chunks(args.data_dir, include_binary=args.include_binary)
     write_index(chunks, args.out)
     print(f"Indexed {len(chunks)} chunks from {args.data_dir} -> {args.out}")
+
+    if args.chroma:
+        build_chroma_index(chunks)
 
 
 if __name__ == "__main__":
