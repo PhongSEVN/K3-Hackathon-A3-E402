@@ -1,0 +1,4 @@
+runs/
+reports/
+*.pt
+*.tar.gz
