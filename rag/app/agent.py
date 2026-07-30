@@ -8,7 +8,7 @@ from dataclasses import asdict
 from pathlib import Path
 
 from .prompts import ANSWER_PROMPT, SYSTEM_PROMPT
-from .rag_pipeline import LocalRetriever, detect_crop, detect_crops
+from .rag_pipeline import LocalRetriever, detect_crop, detect_crops, detect_out_of_scope_crops
 from .schemas import Citation, QuestionAnalysis, RAGAnswer, RetrievedChunk
 
 
@@ -43,29 +43,48 @@ def load_env_file() -> None:
             os.environ[key] = value
 
 
-def analyze_question(question: str) -> QuestionAnalysis:
+def analyze_question(question: str, retriever: LocalRetriever | None = None) -> QuestionAnalysis:
     lowered = question.lower()
     mentioned_crops = detect_crops(question)
     crop = detect_crop(question)
+    # Câu hỏi nêu tên bệnh nhưng không nêu tên cây ("bệnh rỉ sắt chữa bằng thuốc
+    # gì") vẫn xác định được cây khi bệnh đó chỉ có ở một cây trong kho.
+    if not crop and not mentioned_crops and retriever is not None:
+        crop = retriever.infer_crop_from_disease(question)
     symptoms = [hint for hint in SYMPTOM_HINTS if hint in lowered]
+
+    unsafe_drug_request = any(phrase in lowered for phrase in ["liều lượng", "kê đơn", "thuốc mạnh nhất"])
+    broad_or_unknown = any(phrase in lowered for phrase in ["mọi bệnh", "tất cả bệnh", "chính xác", "chưa biết bệnh"])
+    # Cây nằm ngoài kho là "ngoài phạm vi", không phải "người dùng quên nói cây
+    # gì" — hỏi lại cũng vô ích vì kho không có tài liệu cho cây đó.
+    out_of_scope_crops = detect_out_of_scope_crops(question) if not mentioned_crops else []
+
     missing = []
     if len(mentioned_crops) > 1:
         missing.append("cây trồng cụ thể")
-    elif not crop:
+    elif not crop and not out_of_scope_crops:
         missing.append("cây trồng")
     if any(phrase in lowered for phrase in ["chưa mô tả triệu chứng", "không mô tả triệu chứng", "chưa biết bệnh"]):
         missing.append("triệu chứng cụ thể")
-    if not symptoms and len(question.split()) < 8:
+    # Nhắc chung chung "xuất hiện triệu chứng/biểu hiện bệnh" mà không nêu cụ
+    # thể là vàng/đốm/khô gì thì vẫn coi là thiếu triệu chứng, dù câu hỏi dài
+    # (câu hỏi thật thường mô tả bằng ảnh kèm theo, không phải bằng chữ).
+    vague_symptom_mention = not symptoms and any(
+        phrase in lowered for phrase in ["triệu chứng", "biểu hiện", "dấu hiệu"]
+    )
+    if not symptoms and (len(question.split()) < 8 or vague_symptom_mention):
         missing.append("triệu chứng")
-    unsafe_drug_request = any(phrase in lowered for phrase in ["liều lượng", "kê đơn", "thuốc mạnh nhất"])
-    broad_or_unknown = any(phrase in lowered for phrase in ["mọi bệnh", "tất cả bệnh", "chính xác", "chưa biết bệnh"])
+
     if unsafe_drug_request and broad_or_unknown:
         intent = "safe_refusal"
+    elif out_of_scope_crops:
+        intent = "out_of_scope"
+        missing = []
     else:
         intent = "treatment" if any(word in lowered for word in ["trị", "chữa", "phòng", "xử lý"]) else "diagnosis"
     return QuestionAnalysis(
         original_question=question,
-        crop=crop,
+        crop=crop or (out_of_scope_crops[0] if out_of_scope_crops else ""),
         intent=intent,
         missing_fields=missing,
         symptoms=symptoms,
@@ -118,23 +137,41 @@ def fallback_answer(question: str, analysis: QuestionAnalysis, contexts: list[Re
         crop = analysis.crop or "cây trồng"
         return (
             f"Mình không thể đưa một liều lượng thuốc chính xác cho mọi bệnh trên {crop}. "
+            "Mình không bịa tên thuốc hay liều lượng khi nguồn không nêu rõ, và khi chưa biết bệnh "
+            "cụ thể thì lại càng không kê được. "
             "Liều lượng phụ thuộc bệnh, giai đoạn cây, hoạt chất, nhãn thuốc, thời tiết và quy định địa phương. "
-            "Bạn nên nêu bệnh/triệu chứng cụ thể, hoặc hỏi cán bộ BVTV/chuyên gia trước khi phun."
+            "Bạn nên nêu bệnh/triệu chứng cụ thể, hoặc hỏi cán bộ BVTV / chuyên gia trước khi phun."
+        )
+    if analysis.intent == "out_of_scope":
+        crop = analysis.crop or "cây trồng bạn hỏi"
+        return (
+            f"Chưa đủ dữ liệu trong kho tài liệu RAG để trả lời có nguồn cho cây {crop}. "
+            "Kho hiện chỉ có tài liệu về lúa, cà phê, mía và ngô. "
+            "Nên chuyển câu hỏi cho chuyên gia thay vì trả lời khi không có nguồn."
         )
     if analysis.missing_fields:
         missing = ", ".join(analysis.missing_fields)
+        crop_line = (
+            f"Bạn đang hỏi về cây {analysis.crop}, nhưng mình vẫn thiếu phần còn lại. "
+            if analysis.crop
+            else ""
+        )
         return (
             f"Mình cần thêm thông tin về {missing} trước khi chẩn đoán chắc hơn. "
-            "Bạn hãy mô tả cây trồng, vị trí vết bệnh, màu sắc vết, giai đoạn cây và thời tiết gần đây."
+            f"{crop_line}"
+            "Hiện chưa đủ dữ liệu để kết luận, nên không phun thuốc ngay khi chưa xác định được bệnh — "
+            "phun sai vừa tốn tiền vừa hại cây. "
+            "Bạn hãy mô tả cây trồng và triệu chứng cụ thể: vị trí vết bệnh, màu sắc vết, "
+            "giai đoạn cây và thời tiết gần đây."
         )
     if not contexts:
         return "Chưa đủ dữ liệu trong kho tài liệu RAG để trả lời có nguồn. Nên chuyển câu hỏi cho chuyên gia."
 
     top = contexts[0]
     citations = "\n".join(
-        f"[{i}] {item.citation.source_file} - "
-        + (", ".join(item.citation.source_urls) if item.citation.source_urls else item.citation.relative_path)
-        for i, item in enumerate(contexts[:3], start=1)
+        f"[{i}] {citation.source_file} - "
+        + (", ".join(citation.source_urls) if citation.source_urls else citation.relative_path)
+        for i, citation in enumerate(distinct_citations(contexts), start=1)
     )
     evidence = "\n".join(f"- {item.text[:260].strip()}..." for item in contexts[:2])
     return f"""Chẩn đoán khả năng:
@@ -155,8 +192,27 @@ Nguồn:
 {citations}"""
 
 
+def distinct_citations(contexts: list[RetrievedChunk], limit: int = 3) -> list[Citation]:
+    """Mỗi tài liệu trích một lần.
+
+    Lấy thẳng 3 chunk đầu thì câu so sánh hai bệnh thường ra 3 chunk cùng một
+    tài liệu, người đọc chỉ thấy một nguồn cho hai bệnh (xem golden set G14).
+    """
+    citations: list[Citation] = []
+    seen: set[str] = set()
+    for item in contexts:
+        key = item.citation.relative_path
+        if key in seen:
+            continue
+        seen.add(key)
+        citations.append(item.citation)
+        if len(citations) == limit:
+            break
+    return citations
+
+
 def confidence_from(contexts: list[RetrievedChunk], analysis: QuestionAnalysis) -> float:
-    if analysis.intent == "safe_refusal":
+    if analysis.intent in ("safe_refusal", "out_of_scope"):
         return 0.15
     if analysis.missing_fields or not contexts:
         return 0.2
@@ -173,10 +229,10 @@ class AgenticRAG:
         self.use_llm = use_llm
 
     def answer_question(self, question: str, top_k: int = 5) -> RAGAnswer:
-        analysis = analyze_question(question)
+        analysis = analyze_question(question, retriever=self.retriever)
         contexts = (
             []
-            if analysis.missing_fields or analysis.intent == "safe_refusal"
+            if analysis.missing_fields or analysis.intent in ("safe_refusal", "out_of_scope")
             else self.retriever.search(question, top_k=top_k, crop=analysis.crop)
         )
         # No LLM call when there is nothing grounded to answer from: missing
@@ -197,7 +253,7 @@ class AgenticRAG:
             answer = ""
         answer = answer or fallback_answer(question, analysis, contexts)
         confidence = confidence_from(contexts, analysis)
-        citations: list[Citation] = [item.citation for item in contexts[:3]]
+        citations: list[Citation] = distinct_citations(contexts)
         return RAGAnswer(
             question=question,
             answer=answer,

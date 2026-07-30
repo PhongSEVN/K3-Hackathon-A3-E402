@@ -5,7 +5,7 @@
   align-items: center;
   justify-content: center;
   position: relative;
-  overflow: hidden;
+  overflow-x: clip; /* Fix for sticky, was overflow: hidden */
 }
 
 @keyframes float-breathe {
@@ -48,7 +48,7 @@
   width: 100%;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  align-items: flex-start; /* Changed from stretch so panels do not force each other's height */
+  align-items: stretch; /* Stretch so the right panel can vertically center the input based on the left panel's height */
   gap: 24px;
 }
 

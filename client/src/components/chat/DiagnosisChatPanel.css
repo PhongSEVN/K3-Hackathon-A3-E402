@@ -8,6 +8,22 @@
   background-color: var(--surface-container-lowest);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05), 0 1px 4px rgba(0, 0, 0, 0.02);
   overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.diagnosis-chat-panel.is-empty {
+  min-height: auto;
+  height: 100%;
+  justify-content: center;
+  background-color: transparent;
+  box-shadow: none;
+}
+
+.diagnosis-chat-panel.is-empty .diagnosis-chat-input-row {
+  border: 1px solid var(--outline-variant);
+  border-radius: 32px;
+  background-color: var(--surface-container-lowest);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .diagnosis-chat-messages {

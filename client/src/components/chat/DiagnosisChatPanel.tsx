@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import ChatBubble from './ChatBubble';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
+import { useChatHistory } from '../../context/ChatHistoryContext';
 import { ApiError, sendChatMessage } from '../../lib/api';
 import './DiagnosisChatPanel.css';
 
@@ -24,6 +25,7 @@ interface DiagnosisChatPanelProps {
 const DiagnosisChatPanel: React.FC<DiagnosisChatPanelProps> = ({ diagnosis }) => {
   const { token } = useAuth();
   const { t } = useLanguage();
+  const { addConversation } = useChatHistory();
   const sessionIdRef = useRef(crypto.randomUUID());
   const handledImageRef = useRef<string | null>(null);
 
@@ -37,7 +39,8 @@ const DiagnosisChatPanel: React.FC<DiagnosisChatPanelProps> = ({ diagnosis }) =>
 
     setError(null);
     setIsSending(true);
-    setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: 'user', content: question }]);
+    const userMessage: ChatEntry = { id: crypto.randomUUID(), role: 'user', content: question };
+    setMessages((prev) => [...prev, userMessage]);
     try {
       const response = await sendChatMessage(token, {
         session_id: sessionIdRef.current,
@@ -45,10 +48,18 @@ const DiagnosisChatPanel: React.FC<DiagnosisChatPanelProps> = ({ diagnosis }) =>
         diease: diagnosis?.label,
         image: diagnosis?.imageUrl,
       });
-      setMessages((prev) => [
-        ...prev,
-        { id: response.id, role: 'assistant', content: response.answer ?? '' },
-      ]);
+      const assistantMessage: ChatEntry = { id: response.id, role: 'assistant', content: response.answer ?? '' };
+      setMessages((prev) => {
+        const nextMessages = [...prev, assistantMessage];
+        addConversation({
+          id: sessionIdRef.current,
+          title: diagnosis?.label ? `Tư vấn ${diagnosis.label.replaceAll('_', ' ')}` : 'Chat mới',
+          updatedAt: 'Vừa xong',
+          imageUrl: diagnosis?.imageUrl,
+          messages: nextMessages as any, // Cast if types don't exactly match
+        });
+        return nextMessages;
+      });
     } catch (err) {
       setError(err instanceof ApiError ? err.message : t.home.chatError);
     } finally {
@@ -59,32 +70,33 @@ const DiagnosisChatPanel: React.FC<DiagnosisChatPanelProps> = ({ diagnosis }) =>
   useEffect(() => {
     if (!diagnosis || handledImageRef.current === diagnosis.imageUrl) return;
     handledImageRef.current = diagnosis.imageUrl;
-    void sendMessage(t.home.diagnosisQuestion);
+    // User will now manually type and send their question
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [diagnosis?.imageUrl]);
+
+  const canSend = inputValue.trim().length > 0 && !!diagnosis?.imageUrl;
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     const trimmed = inputValue.trim();
-    if (!trimmed || isSending) return;
+    if (!canSend || isSending) return;
     setInputValue('');
     void sendMessage(trimmed);
   };
 
   return (
-    <div className="diagnosis-chat-panel">
-      <div className="diagnosis-chat-messages custom-scrollbar">
-        {messages.length === 0 && !isSending && (
-          <p className="diagnosis-chat-empty font-body-md text-on-surface-variant">{t.home.chatEmptyHint}</p>
-        )}
-        {messages.map((message) => (
-          <ChatBubble key={message.id} isUser={message.role === 'user'}>
-            {message.role === 'assistant' ? `${message.content}\n\n**Nguồn tham khảo:** Hệ chuyên gia AI` : message.content}
-          </ChatBubble>
-        ))}
-        {isSending && <p className="font-label-sm text-on-surface-variant diagnosis-chat-thinking">{t.home.chatThinking}</p>}
-        {error && <p className="diagnosis-chat-error font-label-sm">{error}</p>}
-      </div>
+    <div className={`diagnosis-chat-panel ${messages.length === 0 ? 'is-empty' : ''}`}>
+      {messages.length > 0 && (
+        <div className="diagnosis-chat-messages custom-scrollbar">
+          {messages.map((message) => (
+            <ChatBubble key={message.id} isUser={message.role === 'user'}>
+              {message.role === 'assistant' ? `${message.content}\n\n**Nguồn tham khảo:** Hệ chuyên gia AI` : message.content}
+            </ChatBubble>
+          ))}
+          {isSending && <p className="font-label-sm text-on-surface-variant diagnosis-chat-thinking">{t.home.chatThinking}</p>}
+          {error && <p className="diagnosis-chat-error font-label-sm">{error}</p>}
+        </div>
+      )}
 
       <form className="diagnosis-chat-input-row" onSubmit={handleSubmit}>
         <input
@@ -98,7 +110,7 @@ const DiagnosisChatPanel: React.FC<DiagnosisChatPanelProps> = ({ diagnosis }) =>
         <button
           type="submit"
           className="diagnosis-chat-send-btn"
-          disabled={isSending || !inputValue.trim()}
+          disabled={isSending || !canSend}
           aria-label="Send"
         >
           <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>

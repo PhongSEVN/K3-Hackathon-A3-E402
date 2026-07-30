@@ -48,6 +48,9 @@ const ChatPage: React.FC = () => {
               <div className="chat-history-grid">
                 {conversations.map((item) => (
                   <Link className="chat-history-card" to={`/chat/${item.id}`} key={item.id}>
+                    {item.imageUrl && (
+                      <img src={item.imageUrl} alt="Chat avatar" style={{ width: '100%', height: '120px', objectFit: 'cover', borderRadius: '8px', marginBottom: '12px' }} />
+                    )}
                     <span className="font-title-md">{item.title}</span>
                     <span className="font-body-sm chat-history-preview">
                       {item.messages.at(-1)?.content ?? 'Chưa có tin nhắn'}
