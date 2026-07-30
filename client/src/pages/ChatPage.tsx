@@ -4,10 +4,14 @@ import { useParams } from 'react-router-dom';
 import ChatBubble from '../components/chat/ChatBubble';
 import PromptBar from '../components/shared/PromptBar';
 import { useLanguage } from '../context/LanguageContext';
+import { useChatHistory } from '../context/ChatHistoryContext';
 import './ChatPage.css';
 
 const ChatPage: React.FC = () => {
   const { t } = useLanguage();
+  const { chatId } = useParams();
+  const { getConversation } = useChatHistory();
+  const conversation = getConversation(chatId);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {

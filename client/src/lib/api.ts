@@ -98,3 +98,25 @@ export function changePassword(
     body: JSON.stringify(payload),
   });
 }
+
+export interface AdminStatsResponse {
+  dataset_size: number;
+}
+
+export interface RetrainResponse {
+  status: string;
+  dataset_size: number;
+}
+
+export function getAdminStats(token: string): Promise<AdminStatsResponse> {
+  return request<AdminStatsResponse>('/admin/stats', {
+    headers: authHeaders(token),
+  });
+}
+
+export function triggerRetrain(token: string): Promise<RetrainResponse> {
+  return request<RetrainResponse>('/admin/retrain', {
+    method: 'POST',
+    headers: authHeaders(token),
+  });
+}

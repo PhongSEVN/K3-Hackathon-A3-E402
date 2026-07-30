@@ -48,3 +48,7 @@ def upload_object(bucket: str, object_name: str, data: bytes, content_type: str)
 
 def get_presigned_url(bucket: str, object_name: str, expires_minutes: int = 60) -> str:
     return client.presigned_get_object(bucket, object_name, expires=timedelta(minutes=expires_minutes))
+
+
+def count_objects(bucket: str) -> int:
+    return sum(1 for _ in client.list_objects(bucket, recursive=True))

@@ -1,0 +1,82 @@
+.dashboard-page {
+  padding: 96px 32px 64px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.dashboard-container {
+  width: 100%;
+  max-width: 720px;
+}
+
+.dashboard-header {
+  margin-bottom: 32px;
+}
+
+.dashboard-header h1 {
+  margin: 0 0 8px;
+}
+
+.dashboard-header p {
+  margin: 0;
+}
+
+.dashboard-card {
+  padding: 32px;
+}
+
+.dashboard-card .card-header-small {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.dashboard-card .card-header-small h3 {
+  margin: 0;
+}
+
+.dataset-size {
+  color: var(--on-surface);
+  margin: 0 0 4px;
+}
+
+.dashboard-feedback {
+  margin: 16px 0 0;
+}
+
+.dashboard-feedback-error {
+  color: var(--error);
+}
+
+.dashboard-feedback-success {
+  color: var(--google-blue);
+}
+
+.retrain-btn {
+  margin-top: 24px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 28px;
+  border-radius: 9999px;
+  background-color: var(--primary);
+  color: var(--on-primary);
+  font-weight: 500;
+  transition: background-color 0.2s, transform 0.1s, opacity 0.2s;
+}
+
+.retrain-btn:hover:not(:disabled) {
+  background-color: var(--primary-container);
+}
+
+.retrain-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.retrain-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

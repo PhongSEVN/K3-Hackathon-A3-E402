@@ -1,15 +1,21 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import gsap from 'gsap';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
+import { useChatHistory } from '../../context/ChatHistoryContext';
 import './SideNavRail.css';
 
 const SideNavRail: React.FC = () => {
   const navRef = useRef<HTMLElement>(null);
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const { t } = useLanguage();
+  const { conversations } = useChatHistory();
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const canViewAgronomist = user?.role === 'admin' || user?.role === 'agronomist';
+  const canViewAdmin = user?.role === 'admin';
 
   const handleLogout = () => {
     logout();
@@ -70,10 +76,19 @@ const SideNavRail: React.FC = () => {
             ))}
           </div>
 
-          <NavLink to="/explore" className={({isActive}) => `nav-item ${isActive ? 'active' : ''}`}>
-            <span className="material-symbols-outlined icon">explore</span>
-            <span className="font-label-md nav-label">{t.nav.explore}</span>
-          </NavLink>
+          {canViewAgronomist && (
+            <NavLink to="/agronomist" className={({isActive}) => `nav-item ${isActive ? 'active' : ''}`}>
+              <span className="material-symbols-outlined icon">medical_services</span>
+              <span className="font-label-md nav-label">{t.nav.agronomist}</span>
+            </NavLink>
+          )}
+
+          {canViewAdmin && (
+            <NavLink to="/admin" className={({isActive}) => `nav-item ${isActive ? 'active' : ''}`}>
+              <span className="material-symbols-outlined icon">admin_panel_settings</span>
+              <span className="font-label-md nav-label">{t.nav.admin}</span>
+            </NavLink>
+          )}
         </nav>
       </div>
 
