@@ -4,7 +4,6 @@ import HomePage from './pages/HomePage';
 import ChatPage from './pages/ChatPage';
 import SettingsPage from './pages/SettingsPage';
 import AdminPage from './pages/AdminPage';
-import AgronomistPage from './pages/AgronomistPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import SideNavRail from './components/layout/SideNavRail';
@@ -43,7 +42,22 @@ function AppShell() {
               <Route path="/admin" element={<AdminPage />} />
             </Route>
             <Route element={<RequireRole allowedRoles={['admin', 'agronomist']} />}>
-              <Route path="/agronomist" element={<AgronomistPage />} />
+              <Route
+                path="/agronomist"
+                element={
+                  <Suspense fallback={<div className="route-loading" aria-label="Đang tải" />}>
+                    <ExpertDashboard />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/agronomist/queue"
+                element={
+                  <Suspense fallback={<div className="route-loading" aria-label="Đang tải" />}>
+                    <ExpertQueue />
+                  </Suspense>
+                }
+              />
             </Route>
           </Route>
         </Routes>
