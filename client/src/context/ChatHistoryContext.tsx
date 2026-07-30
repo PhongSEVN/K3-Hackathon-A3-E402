@@ -16,6 +16,8 @@ export interface ChatHistoryItem {
 interface ChatHistoryContextValue {
   conversations: ChatHistoryItem[];
   getConversation: (id: string | undefined) => ChatHistoryItem | undefined;
+  deleteConversation: (id: string) => void;
+  clearConversations: () => void;
 }
 
 const STORAGE_KEY = 'hackathon_mini_chat_history';
@@ -74,7 +76,7 @@ function loadConversations(): ChatHistoryItem[] {
 }
 
 export function ChatHistoryProvider({ children }: { children: ReactNode }) {
-  const [conversations] = useState<ChatHistoryItem[]>(loadConversations);
+  const [conversations, setConversations] = useState<ChatHistoryItem[]>(loadConversations);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(conversations));
@@ -84,6 +86,10 @@ export function ChatHistoryProvider({ children }: { children: ReactNode }) {
     () => ({
       conversations,
       getConversation: (id: string | undefined) => conversations.find((conversation) => conversation.id === id),
+      deleteConversation: (id: string) => {
+        setConversations((current) => current.filter((conversation) => conversation.id !== id));
+      },
+      clearConversations: () => setConversations([]),
     }),
     [conversations],
   );
