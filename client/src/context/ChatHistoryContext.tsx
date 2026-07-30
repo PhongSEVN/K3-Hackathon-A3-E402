@@ -18,6 +18,8 @@ interface ChatHistoryContextValue {
   conversations: ChatHistoryItem[];
   getConversation: (id: string | undefined) => ChatHistoryItem | undefined;
   sendMessage: (conversationId: string | undefined, content: string) => Promise<string>;
+  deleteConversation: (id: string) => void;
+  clearConversations: () => void;
 }
 
 const STORAGE_KEY = 'hackathon_mini_chat_history';
@@ -145,6 +147,10 @@ export function ChatHistoryProvider({ children }: { children: ReactNode }) {
       conversations,
       getConversation: (id: string | undefined) => conversations.find((conversation) => conversation.id === id),
       sendMessage,
+      deleteConversation: (id: string) => {
+        setConversations((current) => current.filter((conversation) => conversation.id !== id));
+      },
+      clearConversations: () => setConversations([]),
     };
   }, [conversations]);
 
