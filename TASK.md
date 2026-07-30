@@ -6,7 +6,7 @@
 - Hệ thống RAG phản hồi câu hỏi nông dân (tư vấn, giải pháp, thuốc,...) kèm trích dẫn nguồn
 - Làm dạng Agentic RAG
 - RAG Eval dùng RAGAS
-- Thư mục làm việc: chỉ `/rag`, không cần đụng thư mục khác
+- Thư mục làm việc: chỉ `/rag`, không cần đụng thư mục khác   
 
 ### Hoàng — Computer Vision
 - 2 mô hình phân loại ảnh: YOLO và ResNet, combine để phát hiện ảnh không liên quan
