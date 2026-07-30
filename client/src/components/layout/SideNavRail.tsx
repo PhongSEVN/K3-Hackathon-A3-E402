@@ -1,10 +1,18 @@
 import React, { useRef } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import gsap from 'gsap';
+import { useAuth } from '../../context/AuthContext';
 import './SideNavRail.css';
 
 const SideNavRail: React.FC = () => {
   const navRef = useRef<HTMLElement>(null);
+  const navigate = useNavigate();
+  const { logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   const handleMouseEnter = () => {
     if (navRef.current) {
@@ -59,6 +67,10 @@ const SideNavRail: React.FC = () => {
         <button className="nav-item">
           <span className="material-symbols-outlined icon">help</span>
           <span className="font-label-md nav-label">Help</span>
+        </button>
+        <button className="nav-item" onClick={handleLogout}>
+          <span className="material-symbols-outlined icon">logout</span>
+          <span className="font-label-md nav-label">Log out</span>
         </button>
       </div>
     </aside>
