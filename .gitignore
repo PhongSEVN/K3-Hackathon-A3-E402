@@ -6,3 +6,5 @@ __pycache__/
 *.venv
 *datasets
 rag/vectorstore/chroma/
+*.idea
+*.vscode

@@ -1,10 +1,20 @@
 import React, { useRef } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import gsap from 'gsap';
+import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../context/LanguageContext';
 import './SideNavRail.css';
 
 const SideNavRail: React.FC = () => {
   const navRef = useRef<HTMLElement>(null);
+  const navigate = useNavigate();
+  const { logout } = useAuth();
+  const { t } = useLanguage();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   const handleMouseEnter = () => {
     if (navRef.current) {
@@ -29,24 +39,23 @@ const SideNavRail: React.FC = () => {
     >
       <div className="nav-top">
         <div className="nav-brand">
-          <span className="material-symbols-outlined logo-icon">auto_awesome</span>
-          <span className="font-headline-md nav-label brand-name">Gemini</span>
+          <span className="material-symbols-outlined logo-icon">eco</span>
         </div>
 
         <nav className="nav-links">
           <NavLink to="/" className={({isActive}) => `nav-item ${isActive ? 'active' : ''}`} end>
             <span className="material-symbols-outlined icon">add</span>
-            <span className="font-label-md nav-label">New Chat</span>
+            <span className="font-label-md nav-label">{t.nav.newChat}</span>
           </NavLink>
-          
+
           <NavLink to="/chat" className={({isActive}) => `nav-item ${isActive ? 'active' : ''}`}>
             <span className="material-symbols-outlined icon">history</span>
-            <span className="font-label-md nav-label">History</span>
+            <span className="font-label-md nav-label">{t.nav.history}</span>
           </NavLink>
 
           <NavLink to="/explore" className={({isActive}) => `nav-item ${isActive ? 'active' : ''}`}>
             <span className="material-symbols-outlined icon">explore</span>
-            <span className="font-label-md nav-label">Explore</span>
+            <span className="font-label-md nav-label">{t.nav.explore}</span>
           </NavLink>
         </nav>
       </div>
@@ -54,11 +63,12 @@ const SideNavRail: React.FC = () => {
       <div className="nav-bottom">
         <NavLink to="/settings" className={({isActive}) => `nav-item ${isActive ? 'active' : ''}`}>
           <span className="material-symbols-outlined icon">settings</span>
-          <span className="font-label-md nav-label">Settings</span>
+          <span className="font-label-md nav-label">{t.nav.settings}</span>
         </NavLink>
-        <button className="nav-item">
-          <span className="material-symbols-outlined icon">help</span>
-          <span className="font-label-md nav-label">Help</span>
+
+        <button className="nav-item" onClick={handleLogout}>
+          <span className="material-symbols-outlined icon">logout</span>
+          <span className="font-label-md nav-label">{t.nav.logout}</span>
         </button>
       </div>
     </aside>
