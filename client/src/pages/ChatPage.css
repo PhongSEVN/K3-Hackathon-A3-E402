@@ -48,8 +48,36 @@
 }
 
 .chat-history-view h2 {
-  margin: 0 0 16px;
+  margin: 0;
   color: var(--on-surface);
+}
+
+.chat-history-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.chat-delete-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border: 1px solid var(--outline-variant);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--error, #ba1a1a);
+  cursor: pointer;
+}
+
+.chat-delete-button:hover {
+  background: color-mix(in srgb, var(--error, #ba1a1a) 10%, transparent);
+}
+
+.chat-delete-button .material-symbols-outlined {
+  font-size: 19px;
 }
 
 .chat-history-grid {
@@ -58,20 +86,52 @@
 }
 
 .chat-history-card {
+  position: relative;
   display: grid;
-  gap: 6px;
-  padding: 16px;
   border: 1px solid var(--outline-variant);
   border-radius: 16px;
   background: var(--surface-container-low);
-  color: var(--on-surface);
-  text-decoration: none;
   transition: background-color 0.2s, border-color 0.2s;
+  overflow: hidden;
 }
 
 .chat-history-card:hover {
   border-color: var(--primary);
   background: var(--surface-container);
+}
+
+.chat-history-card-link {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  padding: 16px 52px 16px 16px;
+  color: var(--on-surface);
+  text-decoration: none;
+}
+
+.chat-card-delete {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--on-surface-variant);
+  cursor: pointer;
+  transform: translateY(-50%);
+}
+
+.chat-card-delete:hover {
+  background: color-mix(in srgb, var(--error, #ba1a1a) 10%, transparent);
+  color: var(--error, #ba1a1a);
+}
+
+.chat-card-delete .material-symbols-outlined {
+  font-size: 20px;
 }
 
 .chat-history-preview {

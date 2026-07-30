@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/api';
 
 export type UserRole = 'admin' | 'farmer' | 'agronomist';
 
@@ -196,19 +196,44 @@ export interface ChatMessageResponse {
   created_at: string;
 }
 
+export interface ChatApiMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+export interface ChatResponse {
+  answer: string;
+  model: string;
+}
+
+export function sendChatMessage(message: string, history: ChatApiMessage[]): Promise<ChatResponse>;
 export function sendChatMessage(
   token: string,
   payload: { session_id: string; question: string; diease?: string; image?: string }
-): Promise<ChatMessageResponse> {
+): Promise<ChatMessageResponse>;
+export function sendChatMessage(
+  messageOrToken: string,
+  historyOrPayload:
+    | ChatApiMessage[]
+    | { session_id: string; question: string; diease?: string; image?: string }
+): Promise<ChatResponse | ChatMessageResponse> {
+  if (Array.isArray(historyOrPayload)) {
+    return request<ChatResponse>('/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: messageOrToken, history: historyOrPayload }),
+    });
+  }
+
   return request<ChatMessageResponse>('/chat/messages', {
     method: 'POST',
-    headers: { ...authHeaders(token), 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
+    headers: { ...authHeaders(messageOrToken), 'Content-Type': 'application/json' },
+    body: JSON.stringify(historyOrPayload),
   });
 }
 
 export function getChatMessages(token: string, sessionId: string): Promise<ChatMessageResponse[]> {
-  return request<ChatMessageResponse[]>(`/chat/messages?session_id=${sessionId}`, {
+  return request<ChatMessageResponse[]>(`/chat/messages?session_id=${encodeURIComponent(sessionId)}`, {
     headers: authHeaders(token),
   });
 }

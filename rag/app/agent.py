@@ -104,7 +104,8 @@ def format_contexts(contexts: list[RetrievedChunk]) -> str:
 
 def call_openai(prompt: str) -> str:
     load_env_file()
-    api_key = os.getenv("API_KEY_OPEN_AI")
+    api_key = os.getenv("RAG_API_KEY") or os.getenv("API_KEY_OPEN_AI") or os.getenv("API_KEY", "")
+    base_url = os.getenv("RAG_OPENAI_BASE_URL", "https://api.openai.com/v1").rstrip("/")
     if not api_key:
         return ""
     payload = {
@@ -116,7 +117,7 @@ def call_openai(prompt: str) -> str:
         "temperature": 0.2,
     }
     request = urllib.request.Request(
-        "https://api.openai.com/v1/chat/completions",
+        f"{base_url}/chat/completions",
         data=json.dumps(payload).encode("utf-8"),
         headers={
             "Authorization": f"Bearer {api_key}",
