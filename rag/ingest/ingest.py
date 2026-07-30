@@ -182,6 +182,38 @@ def write_index(chunks: list[Chunk], index_path: Path = INDEX_PATH) -> None:
     MANIFEST_PATH.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
+def build_chroma_index(chunks: list[Chunk]) -> None:
+    sys.path.insert(0, str(ROOT.parent))
+    from rag.app.chroma_retriever import PERSIST_DIR, COLLECTION_NAME, OpenAIEmbeddingFunction
+    import chromadb
+
+    client = chromadb.PersistentClient(path=str(PERSIST_DIR))
+    collection = client.get_or_create_collection(
+        name=COLLECTION_NAME,
+        embedding_function=OpenAIEmbeddingFunction(),
+        metadata={"hnsw:space": "cosine"},
+    )
+    batch_size = 100
+    for start in range(0, len(chunks), batch_size):
+        batch = chunks[start : start + batch_size]
+        collection.upsert(
+            ids=[chunk.id for chunk in batch],
+            documents=[chunk.text for chunk in batch],
+            metadatas=[
+                {
+                    "crop": chunk.crop,
+                    "disease": chunk.disease,
+                    "source_file": chunk.source_file,
+                    "source_url": chunk.source_url,
+                    "relative_path": chunk.relative_path,
+                    "chunk_index": chunk.chunk_index,
+                }
+                for chunk in batch
+            ],
+        )
+    print(f"Upserted {len(chunks)} chunks into Chroma collection '{COLLECTION_NAME}' at {PERSIST_DIR}")
+
+
 def idf_stats(chunks: list[Chunk]) -> dict[str, float]:
     doc_count = len(chunks)
     df: Counter[str] = Counter()
@@ -198,11 +230,19 @@ def main() -> None:
     parser.add_argument("--data-dir", type=Path, default=DATA_DIR)
     parser.add_argument("--out", type=Path, default=INDEX_PATH)
     parser.add_argument("--include-binary", action="store_true", help="Also try PDF/DOCX extraction.")
+    parser.add_argument(
+        "--chroma",
+        action="store_true",
+        help="Also embed chunks into a persistent ChromaDB collection (needs API_KEY + network).",
+    )
     args = parser.parse_args()
 
     chunks = build_chunks(args.data_dir, include_binary=args.include_binary)
     write_index(chunks, args.out)
     print(f"Indexed {len(chunks)} chunks from {args.data_dir} -> {args.out}")
+
+    if args.chroma:
+        build_chroma_index(chunks)
 
 
 if __name__ == "__main__":

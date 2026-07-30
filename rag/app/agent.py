@@ -218,9 +218,22 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Ask the local Agentic RAG pipeline.")
     parser.add_argument("question")
     parser.add_argument("--top-k", type=int, default=5)
+    parser.add_argument(
+        "--backend",
+        choices=["bm25", "chroma"],
+        default="bm25",
+        help="Retriever backend: local BM25 index (default) or ChromaDB vector store.",
+    )
     args = parser.parse_args()
 
-    result = AgenticRAG().answer_question(args.question, top_k=args.top_k)
+    if args.backend == "chroma":
+        from .chroma_retriever import ChromaRetriever
+
+        retriever = ChromaRetriever()
+    else:
+        retriever = None
+
+    result = AgenticRAG(retriever=retriever).answer_question(args.question, top_k=args.top_k)
     print(json.dumps(asdict(result), ensure_ascii=False, indent=2))
 
 
