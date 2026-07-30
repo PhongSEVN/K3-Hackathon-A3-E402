@@ -22,32 +22,72 @@ const SideNavRail: React.FC = () => {
     navigate('/login');
   };
 
-  const handleMouseEnter = () => {
-    setIsExpanded(true);
-    if (navRef.current) {
-      gsap.to(navRef.current, { width: 256, duration: 0.3, ease: 'power2.out' });
-      gsap.to('.nav-label', { opacity: 1, duration: 0.2, delay: 0.1 });
-    }
-  };
-
-  const handleMouseLeave = () => {
-    setIsExpanded(false);
-    if (navRef.current) {
-      gsap.to(navRef.current, { width: 64, duration: 0.3, ease: 'power2.inOut' });
-      gsap.to('.nav-label', { opacity: 0, duration: 0.1 });
-    }
+  const toggleSidebar = () => {
+    setIsExpanded((prev) => {
+      const nextState = !prev;
+      if (navRef.current) {
+        if (nextState) {
+          gsap.to(navRef.current, { width: 256, duration: 0.3, ease: 'power2.out' });
+          gsap.to('.main-content', { marginLeft: 256, duration: 0.3, ease: 'power2.out' });
+          gsap.to('.nav-label', { opacity: 1, duration: 0.2, delay: 0.1 });
+        } else {
+          gsap.to(navRef.current, { width: 64, duration: 0.3, ease: 'power2.inOut' });
+          gsap.to('.main-content', { marginLeft: 64, duration: 0.3, ease: 'power2.inOut' });
+          gsap.to('.nav-label', { opacity: 0, duration: 0.1 });
+        }
+      }
+      return nextState;
+    });
   };
 
   return (
     <aside 
       ref={navRef}
       className="side-nav-rail"
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
     >
       <div className="nav-top">
-        <div className="nav-brand">
-          <span className="material-symbols-outlined logo-icon">eco</span>
+        <div 
+          className="nav-brand" 
+          style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            padding: isExpanded ? '0 12px' : '0', 
+            justifyContent: isExpanded ? 'space-between' : 'center',
+            width: '100%',
+            boxSizing: 'border-box'
+          }}
+        >
+          <img 
+            src="/logo.jpg" 
+            alt="Logo" 
+            className="logo-icon-img" 
+            style={{ 
+              display: isExpanded ? 'block' : 'none',
+              marginRight: 0 
+            }} 
+          />
+          <button 
+            onClick={toggleSidebar} 
+            title="Đóng/Mở menu"
+            style={{ 
+              background: 'transparent', 
+              border: 'none', 
+              cursor: 'pointer', 
+              padding: '8px', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              borderRadius: '50%',
+              color: 'var(--on-surface-variant)',
+              transition: 'background-color 0.2s',
+              width: '40px',
+              height: '40px'
+            }}
+            onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--surface-container-high)'}
+            onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+          >
+            <span className="material-symbols-outlined">menu</span>
+          </button>
         </div>
 
         <nav className="nav-links">

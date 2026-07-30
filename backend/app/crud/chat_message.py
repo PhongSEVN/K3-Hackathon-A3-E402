@@ -15,6 +15,9 @@ async def create_chat_message(
     answer: str | None,
     diease: str | None = None,
     image: str | None = None,
+    citations: list[dict] | None = None,
+    confidence: float | None = None,
+    needs_human_review: bool = False,
 ) -> ChatMessage:
     message = ChatMessage(
         user_id=user_id,
@@ -23,6 +26,9 @@ async def create_chat_message(
         answer=answer,
         diease=diease,
         image=image,
+        citations=citations or [],
+        confidence=confidence,
+        needs_human_review=needs_human_review,
     )
     db.add(message)
     await db.commit()

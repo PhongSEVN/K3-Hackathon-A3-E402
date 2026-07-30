@@ -1,0 +1,107 @@
+[
+  {
+    "id": "R03",
+    "confidence": 0.55,
+    "needs_human_review": false,
+    "n_contexts": 5,
+    "context_sources": [
+      "data/cà phê/bệnh phấn trắng/text.txt",
+      "data/cà phê/bệnh đốm rong/text.txt",
+      "data/cà phê/bệnh phoma/text.txt",
+      "data/cà phê/bệnh sâu vẽ bùa/text.txt",
+      "data/cà phê/bệnh đốm rong/text.txt"
+    ],
+    "context_scores": [
+      6.1348,
+      5.7927,
+      5.6832,
+      5.3881,
+      5.3744
+    ],
+    "answer_head": "1. **Chẩn đoán khả năng**  \nCây cà phê bị khô lá gốc, sau đó lan dần lên ngọn và chết có thể do nhiều nguyên nhân, nhưng trong ngữ cảnh hiện tại, khả năng cao là do bệnh phấn trắng hoặc bệnh phoma. Cả"
+  },
+  {
+    "id": "R04",
+    "confidence": 0.49,
+    "needs_human_review": true,
+    "n_contexts": 5,
+    "context_sources": [
+      "data/cà phê/bệnh sâu vẽ bùa/text.txt",
+      "data/cà phê/bệnh đốm rong/text.txt",
+      "data/cà phê/bệnh đốm rong/text.txt",
+      "data/cà phê/bệnh phấn trắng/text.txt",
+      "data/cà phê/bệnh phoma/text.txt"
+    ],
+    "context_scores": [
+      5.8213,
+      5.7509,
+      5.6643,
+      5.54,
+      5.4676
+    ],
+    "answer_head": "1. **Chẩn đoán khả năng**  \nCây cà phê của bạn có thể bị bệnh thối vỏ do nấm hoặc vi khuẩn gây ra, dẫn đến hiện tượng héo cây và chết. Bệnh này thường phát triển trong điều kiện ẩm ướt và có thể lây l"
+  },
+  {
+    "id": "R05",
+    "confidence": 0.54,
+    "needs_human_review": true,
+    "n_contexts": 5,
+    "context_sources": [
+      "data/lúa/Bệnh đốm nâu/text.txt",
+      "data/lúa/Bệnh vàng lá tungro/text.txt",
+      "data/lúa/Bệnh vàng lá tungro/text.txt",
+      "data/lúa/Bệnh đốm nâu/text.txt",
+      "data/lúa/Bệnh Sâu gai hispa/text.txt"
+    ],
+    "context_scores": [
+      5.9623,
+      5.5369,
+      5.5117,
+      5.4238,
+      5.3891
+    ],
+    "answer_head": "1. **Chẩn đoán khả năng**  \n   Cây lúa của bạn có thể đang bị **bệnh đốm nâu**. Triệu chứng như vàng, đỏ chóp lá, cháy bìa lá và các vết lốm đốm nhỏ màu nâu là đặc trưng của bệnh này.\n\n2. **Dấu hiệu đ"
+  },
+  {
+    "id": "R06",
+    "confidence": 0.49,
+    "needs_human_review": true,
+    "n_contexts": 5,
+    "context_sources": [
+      "data/ngô/Bệnh cháy lá lớn/text.txt",
+      "data/ngô/Bệnh rỉ sắt ngô/text.txt",
+      "data/ngô/Bệnh đốm lá xám/text.txt",
+      "data/ngô/Bệnh cháy lá lớn/text.txt",
+      "data/ngô/Bệnh rỉ sắt ngô/text.txt"
+    ],
+    "context_scores": [
+      5.7141,
+      5.5545,
+      5.0348,
+      4.6695,
+      4.6578
+    ],
+    "answer_head": "1. **Chẩn đoán khả năng**  \n   Cây ngô của bạn có thể đang bị ảnh hưởng bởi bệnh đục thân, có thể do sâu đục thân gây ra. Việc 100% cây bị đục cho thấy tình trạng nghiêm trọng và có thể là do điều kiệ"
+  },
+  {
+    "id": "R07",
+    "confidence": 0.44,
+    "needs_human_review": true,
+    "n_contexts": 5,
+    "context_sources": [
+      "data/mía/Bệnh thối hom/text.txt",
+      "data/mía/Bệnh đốm nâu/text.txt",
+      "data/mía/Bệnh thối hom/text.txt",
+      "data/mía/bệnh rỉ sắt nâu/text.txt",
+      "data/mía/Bệnh than đen/text.txt"
+    ],
+    "context_scores": [
+      5.2916,
+      5.274,
+      5.2585,
+      5.2492,
+      5.2279
+    ],
+    "answer_head": "1. **Chẩn đoán khả năng**  \nCây mía của bạn có thể đang bị sâu đục thân, một loại sâu bệnh thường gây hại cho cây mía, đặc biệt là trong giai đoạn mới lên đọt.\n\n2. **Dấu hiệu đối chiếu**  \n- Xuất hiện"
+  }
+]

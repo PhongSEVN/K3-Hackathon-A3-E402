@@ -2,8 +2,9 @@ import React, { useEffect, useRef, useState } from 'react';
 import ChatBubble from './ChatBubble';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
-import { useChatHistory } from '../../context/ChatHistoryContext';
+import { useChatHistory, type ChatMessage } from '../../context/ChatHistoryContext';
 import { ApiError, sendChatMessage } from '../../lib/api';
+import { formatAssistantContent } from '../../lib/chatFormat';
 import './DiagnosisChatPanel.css';
 
 export interface DiagnosisInfo {
@@ -12,11 +13,7 @@ export interface DiagnosisInfo {
   imageUrl: string;
 }
 
-interface ChatEntry {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-}
+type ChatEntry = ChatMessage;
 
 interface DiagnosisChatPanelProps {
   diagnosis: DiagnosisInfo | null;
@@ -48,7 +45,14 @@ const DiagnosisChatPanel: React.FC<DiagnosisChatPanelProps> = ({ diagnosis }) =>
         diease: diagnosis?.label,
         image: diagnosis?.imageUrl,
       });
-      const assistantMessage: ChatEntry = { id: response.id, role: 'assistant', content: response.answer ?? '' };
+      const assistantMessage: ChatEntry = {
+        id: response.id,
+        role: 'assistant',
+        content: response.answer ?? '',
+        citations: response.citations,
+        confidence: response.confidence,
+        needsHumanReview: response.needs_human_review,
+      };
       setMessages((prev) => {
         const nextMessages = [...prev, assistantMessage];
         addConversation({
@@ -56,7 +60,7 @@ const DiagnosisChatPanel: React.FC<DiagnosisChatPanelProps> = ({ diagnosis }) =>
           title: diagnosis?.label ? `Tư vấn ${diagnosis.label.replaceAll('_', ' ')}` : 'Chat mới',
           updatedAt: 'Vừa xong',
           imageUrl: diagnosis?.imageUrl,
-          messages: nextMessages as any, // Cast if types don't exactly match
+          messages: nextMessages,
         });
         return nextMessages;
       });
@@ -90,7 +94,9 @@ const DiagnosisChatPanel: React.FC<DiagnosisChatPanelProps> = ({ diagnosis }) =>
         <div className="diagnosis-chat-messages custom-scrollbar">
           {messages.map((message) => (
             <ChatBubble key={message.id} isUser={message.role === 'user'}>
-              {message.role === 'assistant' ? `${message.content}\n\n**Nguồn tham khảo:** Hệ chuyên gia AI` : message.content}
+              {message.role === 'assistant'
+                ? formatAssistantContent(message.content, message.citations, message.needsHumanReview)
+                : message.content}
             </ChatBubble>
           ))}
           {isSending && <p className="font-label-sm text-on-surface-variant diagnosis-chat-thinking">{t.home.chatThinking}</p>}

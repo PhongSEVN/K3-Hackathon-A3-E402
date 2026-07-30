@@ -25,5 +25,5 @@ def _get_rag() -> AgenticRAG:
     return _rag
 
 
-def ask_question(question: str) -> RAGAnswer:
-    return _get_rag().answer_question(question)
+def ask_question(question: str, known_crop: str = "", known_disease: str = "") -> RAGAnswer:
+    return _get_rag().answer_question(question, known_crop=known_crop, known_disease=known_disease)

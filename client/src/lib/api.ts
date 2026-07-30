@@ -173,6 +173,12 @@ export function updateAgronomistCase(
   });
 }
 
+export interface ChatCitation {
+  source_file: string;
+  source_urls: string[];
+  relative_path: string;
+}
+
 export interface ChatMessageResponse {
   id: string;
   session_id: string;
@@ -180,6 +186,9 @@ export interface ChatMessageResponse {
   answer: string | null;
   diease: string | null;
   image: string | null;
+  citations: ChatCitation[];
+  confidence: number | null;
+  needs_human_review: boolean;
   created_at: string;
 }
 

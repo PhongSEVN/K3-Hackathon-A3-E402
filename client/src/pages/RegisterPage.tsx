@@ -47,7 +47,7 @@ const RegisterPage: React.FC = () => {
 
       <div className="auth-card glass-card subtle-shadow">
         <div className="auth-brand">
-          <span className="material-symbols-outlined logo-icon">eco</span>
+          <img src="/logo.jpg" alt="Logo" className="logo-icon-img" />
           <span className="font-headline-md">{t.auth.brand}</span>
         </div>
 

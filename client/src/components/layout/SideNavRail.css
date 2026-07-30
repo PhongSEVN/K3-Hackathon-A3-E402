@@ -37,6 +37,14 @@
   font-variation-settings: 'FILL' 1;
 }
 
+.logo-icon-img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 16px;
+}
+
 .brand-name {
   color: var(--on-surface);
   font-weight: 700;

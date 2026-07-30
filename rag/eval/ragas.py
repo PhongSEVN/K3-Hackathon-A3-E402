@@ -179,10 +179,23 @@ def main() -> None:
     parser.add_argument("--csv", type=Path, default=RESULTS_CSV)
     parser.add_argument("--md", type=Path, default=RESULTS_MD)
     parser.add_argument("--force-heuristic", action="store_true")
+    parser.add_argument(
+        "--backend",
+        choices=["bm25", "chroma"],
+        default="bm25",
+        help="Retriever backend to eval. rag_client.py wires chroma into production, but chroma's "
+        "MIN_SCORE cutoff + generic embeddings currently underperform bm25 on this small in-domain "
+        "corpus (see README/handoff notes) — bm25 stays the eval default until that's fixed.",
+    )
     args = parser.parse_args()
 
     cases = load_golden(args.golden)
-    agent = AgenticRAG(use_llm=not args.force_heuristic)
+    retriever = None
+    if args.backend == "chroma":
+        from rag.app.chroma_retriever import ChromaRetriever
+
+        retriever = ChromaRetriever()
+    agent = AgenticRAG(retriever=retriever, use_llm=not args.force_heuristic)
     rows = None if args.force_heuristic else try_ragas_eval(cases, agent)
     mode = "ragas" if rows is not None else "heuristic-fallback"
     if rows is None:

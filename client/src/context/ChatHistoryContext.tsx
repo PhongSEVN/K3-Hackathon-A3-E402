@@ -1,9 +1,13 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import type { ChatCitation } from '../lib/api';
 
 export interface ChatMessage {
   id: string;
   role: 'user' | 'assistant';
   content: string;
+  citations?: ChatCitation[];
+  confidence?: number | null;
+  needsHumanReview?: boolean;
 }
 
 export interface ChatHistoryItem {
@@ -18,6 +22,7 @@ interface ChatHistoryContextValue {
   conversations: ChatHistoryItem[];
   getConversation: (id: string | undefined) => ChatHistoryItem | undefined;
   addConversation: (item: ChatHistoryItem) => void;
+  deleteConversation: (id: string) => void;
 }
 
 const STORAGE_KEY = 'hackathon_mini_chat_history';
@@ -94,6 +99,9 @@ export function ChatHistoryProvider({ children }: { children: ReactNode }) {
           }
           return [item, ...prev];
         });
+      },
+      deleteConversation: (id: string) => {
+        setConversations((prev) => prev.filter((c) => c.id !== id));
       },
     }),
     [conversations],

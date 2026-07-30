@@ -6,10 +6,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.routes import admin, agronomist, auth, chat, health, predictions, users
 from app.core.config import settings
 from app.core.storage import ensure_buckets
+from app.db.migrate import run_migrations
+from app.db.session import engine
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    await run_migrations(engine)
     ensure_buckets()
     yield
 

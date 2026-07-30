@@ -11,6 +11,12 @@ class ChatMessageRequest(BaseModel):
     image: str | None = None
 
 
+class ChatCitation(BaseModel):
+    source_file: str
+    source_urls: list[str]
+    relative_path: str
+
+
 class ChatMessageResponse(BaseModel):
     id: uuid.UUID
     session_id: uuid.UUID
@@ -18,6 +24,9 @@ class ChatMessageResponse(BaseModel):
     answer: str | None
     diease: str | None
     image: str | None
+    citations: list[ChatCitation]
+    confidence: float | None
+    needs_human_review: bool
     created_at: datetime
 
     model_config = {"from_attributes": True}

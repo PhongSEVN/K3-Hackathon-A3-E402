@@ -27,8 +27,12 @@ DISEASE_LABELS: dict[str, tuple[str, str]] = {
 }
 
 
+def get_crop_disease(label: str) -> tuple[str, str]:
+    return DISEASE_LABELS.get(label, ("", label.replace("_", " ")))
+
+
 def describe_label(label: str) -> str:
-    crop, disease = DISEASE_LABELS.get(label, ("", label.replace("_", " ")))
+    crop, disease = get_crop_disease(label)
 
     if not disease:
         if crop:

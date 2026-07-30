@@ -1,4 +1,5 @@
 import uuid
+from dataclasses import asdict
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -8,7 +9,7 @@ from app.core.deps import get_current_user
 from app.core.rag_client import ask_question
 from app.crud.chat_message import create_chat_message, list_chat_messages
 from app.db.session import get_db
-from app.ml.disease_labels import describe_label
+from app.ml.disease_labels import describe_label, get_crop_disease
 from app.models.user import User
 from app.schemas.chat import ChatMessageRequest, ChatMessageResponse
 
@@ -22,10 +23,12 @@ async def send_message(
     db: AsyncSession = Depends(get_db),
 ) -> ChatMessageResponse:
     question = payload.question
+    known_crop, known_disease = "", ""
     if payload.diease:
+        known_crop, known_disease = get_crop_disease(payload.diease)
         question = f"{describe_label(payload.diease)} {question}"
 
-    result = await run_in_threadpool(ask_question, question)
+    result = await run_in_threadpool(ask_question, question, known_crop, known_disease)
 
     message = await create_chat_message(
         db,
@@ -35,6 +38,9 @@ async def send_message(
         answer=result.answer,
         diease=payload.diease,
         image=payload.image,
+        citations=[asdict(citation) for citation in result.citations],
+        confidence=result.confidence,
+        needs_human_review=result.needs_human_review,
     )
     return ChatMessageResponse.model_validate(message)
 

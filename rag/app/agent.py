@@ -7,7 +7,7 @@ import urllib.request
 from dataclasses import asdict
 from pathlib import Path
 
-from .prompts import ANSWER_PROMPT, SYSTEM_PROMPT
+from .prompts import ANSWER_PROMPT, OFF_TOPIC_REPLY, SYSTEM_PROMPT
 from .rag_pipeline import LocalRetriever, detect_crop, detect_crops, detect_out_of_scope_crops
 from .schemas import Citation, QuestionAnalysis, RAGAnswer, RetrievedChunk
 
@@ -27,6 +27,49 @@ SYMPTOM_HINTS = [
     "đạo ôn",
 ]
 
+# Nông dân đã tự xử lý bằng thuốc cụ thể mà chưa khỏi. Kho tài liệu chỉ có
+# hướng dẫn xử lý chung cho từng bệnh, không đủ để xác định vì sao cách đã
+# dùng chưa hiệu quả (liều lượng, thời điểm phun, kháng thuốc, chẩn đoán sai
+# bệnh...) — cần chuyên gia kiểm tra trực tiếp thay vì đoán tiếp qua RAG.
+TREATMENT_FAILED_HINTS = [
+    "đã dùng",
+    "có dùng",
+    "đã phun",
+    "có phun",
+    "đã xịt",
+    "có xịt",
+    "đã sử dụng",
+    "đã áp dụng",
+    "đã bón",
+    "đã trị",
+    "chưa khỏi",
+    "không khỏi",
+    "vẫn không hết",
+    "chưa hết",
+    "không hết bệnh",
+]
+
+# Yêu cầu rõ ràng ngoài phạm vi tư vấn bệnh cây trồng (viết code, lập trình...).
+# Kiểm tra TRƯỚC known_crop/known_disease: một phiên chat đính kèm ảnh chẩn
+# đoán vẫn có thể hỏi lạc đề giữa chừng, không nên cố nhét ngữ cảnh bệnh cây
+# vào một câu hỏi rõ ràng không liên quan (xem session thật: hỏi "cho code
+# python in Hello World" vẫn bị trả lời về bệnh than đen mía).
+OFF_TOPIC_HINTS = [
+    "đoạn code",
+    "viết code",
+    "lập trình",
+    "viết chương trình",
+    "viết hàm",
+    "viết script",
+    "viết thuật toán",
+    "python",
+    "javascript",
+    "typescript",
+    "sql",
+    "html",
+    "hello world",
+]
+
 
 def load_env_file() -> None:
     env_path = Path(__file__).resolve().parents[2] / ".env"
@@ -43,24 +86,36 @@ def load_env_file() -> None:
             os.environ[key] = value
 
 
-def analyze_question(question: str, retriever: LocalRetriever | None = None) -> QuestionAnalysis:
+def analyze_question(
+    question: str,
+    retriever: LocalRetriever | None = None,
+    known_crop: str = "",
+    known_disease: str = "",
+) -> QuestionAnalysis:
+    """`known_crop`/`known_disease` come from an already-confirmed diagnosis
+    (e.g. the CV image classifier) rather than being parsed from the question
+    text. When set, the crop/symptom fields below are considered answered
+    even if the question itself is short or generic ("bệnh này chữa thế
+    nào?") — the disease is already known, there is nothing left to ask.
+    """
     lowered = question.lower()
     mentioned_crops = detect_crops(question)
-    crop = detect_crop(question)
+    crop = known_crop or detect_crop(question)
     # Câu hỏi nêu tên bệnh nhưng không nêu tên cây ("bệnh rỉ sắt chữa bằng thuốc
     # gì") vẫn xác định được cây khi bệnh đó chỉ có ở một cây trong kho.
     if not crop and not mentioned_crops and retriever is not None:
-        crop = retriever.infer_crop_from_disease(question)
+        infer_crop_from_disease = getattr(retriever, "infer_crop_from_disease", None)
+        crop = infer_crop_from_disease(question) if infer_crop_from_disease else ""
     symptoms = [hint for hint in SYMPTOM_HINTS if hint in lowered]
 
     unsafe_drug_request = any(phrase in lowered for phrase in ["liều lượng", "kê đơn", "thuốc mạnh nhất"])
     broad_or_unknown = any(phrase in lowered for phrase in ["mọi bệnh", "tất cả bệnh", "chính xác", "chưa biết bệnh"])
     # Cây nằm ngoài kho là "ngoài phạm vi", không phải "người dùng quên nói cây
     # gì" — hỏi lại cũng vô ích vì kho không có tài liệu cho cây đó.
-    out_of_scope_crops = detect_out_of_scope_crops(question) if not mentioned_crops else []
+    out_of_scope_crops = detect_out_of_scope_crops(question) if not mentioned_crops and not known_crop else []
 
     missing = []
-    if len(mentioned_crops) > 1:
+    if len(mentioned_crops) > 1 and not known_crop:
         missing.append("cây trồng cụ thể")
     elif not crop and not out_of_scope_crops:
         missing.append("cây trồng")
@@ -69,16 +124,31 @@ def analyze_question(question: str, retriever: LocalRetriever | None = None) -> 
     # Nhắc chung chung "xuất hiện triệu chứng/biểu hiện bệnh" mà không nêu cụ
     # thể là vàng/đốm/khô gì thì vẫn coi là thiếu triệu chứng, dù câu hỏi dài
     # (câu hỏi thật thường mô tả bằng ảnh kèm theo, không phải bằng chữ).
-    vague_symptom_mention = not symptoms and any(
+    vague_symptom_mention = not symptoms and not known_disease and any(
         phrase in lowered for phrase in ["triệu chứng", "biểu hiện", "dấu hiệu"]
     )
-    if not symptoms and (len(question.split()) < 8 or vague_symptom_mention):
+    if not symptoms and not known_disease and (len(question.split()) < 8 or vague_symptom_mention):
         missing.append("triệu chứng")
 
-    if unsafe_drug_request and broad_or_unknown:
+    # Đã tự xử lý bằng thuốc cụ thể mà chưa khỏi: kho chỉ có hướng dẫn xử lý
+    # chung theo bệnh, không đủ để chẩn đoán vì sao cách đã dùng thất bại —
+    # cần chuyên gia kiểm tra trực tiếp thay vì RAG đoán thêm một liệu trình khác.
+    treatment_already_tried = any(phrase in lowered for phrase in TREATMENT_FAILED_HINTS)
+    off_topic = any(phrase in lowered for phrase in OFF_TOPIC_HINTS)
+
+    if off_topic:
+        # Chạy trước mọi nhánh khác: một câu hỏi rõ ràng ngoài chủ đề (viết
+        # code...) không nên bị known_crop/known_disease từ ảnh chẩn đoán
+        # trước đó ép thành câu hỏi về bệnh cây.
+        intent = "off_topic"
+        missing = []
+    elif unsafe_drug_request and broad_or_unknown:
         intent = "safe_refusal"
     elif out_of_scope_crops:
         intent = "out_of_scope"
+        missing = []
+    elif treatment_already_tried:
+        intent = "treatment_failed"
         missing = []
     else:
         intent = "treatment" if any(word in lowered for word in ["trị", "chữa", "phòng", "xử lý"]) else "diagnosis"
@@ -87,7 +157,7 @@ def analyze_question(question: str, retriever: LocalRetriever | None = None) -> 
         crop=crop or (out_of_scope_crops[0] if out_of_scope_crops else ""),
         intent=intent,
         missing_fields=missing,
-        symptoms=symptoms,
+        symptoms=symptoms or ([known_disease] if known_disease else []),
     )
 
 
@@ -133,6 +203,12 @@ def call_openai(prompt: str) -> str:
 
 
 def fallback_answer(question: str, analysis: QuestionAnalysis, contexts: list[RetrievedChunk]) -> str:
+    if analysis.intent == "off_topic":
+        return (
+            "Chưa đủ dữ liệu trong kho tài liệu RAG để trả lời yêu cầu này — mình chỉ hỗ trợ tư vấn "
+            "bệnh cây trồng (lúa, cà phê, mía, ngô), không viết code hay hỗ trợ chủ đề ngoài nông nghiệp. "
+            "Bạn có câu hỏi nào về bệnh cây trồng không?"
+        )
     if analysis.intent == "safe_refusal":
         crop = analysis.crop or "cây trồng"
         return (
@@ -148,6 +224,14 @@ def fallback_answer(question: str, analysis: QuestionAnalysis, contexts: list[Re
             f"Chưa đủ dữ liệu trong kho tài liệu RAG để trả lời có nguồn cho cây {crop}. "
             "Kho hiện chỉ có tài liệu về lúa, cà phê, mía và ngô. "
             "Nên chuyển câu hỏi cho chuyên gia thay vì trả lời khi không có nguồn."
+        )
+    if analysis.intent == "treatment_failed":
+        crop = analysis.crop or "cây trồng bạn hỏi"
+        return (
+            f"Chưa đủ dữ liệu trong kho tài liệu RAG để xác định vì sao cách đã xử lý cho {crop} chưa hiệu "
+            "quả — có thể do liều lượng, thời điểm phun, thuốc bị kháng, hoặc chẩn đoán bệnh chưa đúng, và kho "
+            "chỉ có hướng dẫn xử lý chung theo từng bệnh chứ không chẩn đoán được ca đã điều trị thất bại. "
+            "Nên chuyển câu hỏi cho chuyên gia / cán bộ BVTV kiểm tra trực tiếp thay vì trả lời khi không có nguồn."
         )
     if analysis.missing_fields:
         missing = ", ".join(analysis.missing_fields)
@@ -212,7 +296,11 @@ def distinct_citations(contexts: list[RetrievedChunk], limit: int = 3) -> list[C
 
 
 def confidence_from(contexts: list[RetrievedChunk], analysis: QuestionAnalysis) -> float:
-    if analysis.intent in ("safe_refusal", "out_of_scope"):
+    if analysis.intent == "off_topic":
+        # Chắc chắn đây là câu hỏi ngoài phạm vi — không cần chuyên gia nông
+        # nghiệp xem lại yêu cầu viết code.
+        return 0.9
+    if analysis.intent in ("safe_refusal", "out_of_scope", "treatment_failed"):
         return 0.15
     if analysis.missing_fields or not contexts:
         return 0.2
@@ -228,11 +316,16 @@ class AgenticRAG:
         self.retriever = retriever or LocalRetriever()
         self.use_llm = use_llm
 
-    def answer_question(self, question: str, top_k: int = 5) -> RAGAnswer:
-        analysis = analyze_question(question, retriever=self.retriever)
+    def answer_question(
+        self, question: str, top_k: int = 5, known_crop: str = "", known_disease: str = ""
+    ) -> RAGAnswer:
+        analysis = analyze_question(
+            question, retriever=self.retriever, known_crop=known_crop, known_disease=known_disease
+        )
         contexts = (
             []
-            if analysis.missing_fields or analysis.intent in ("safe_refusal", "out_of_scope")
+            if analysis.missing_fields
+            or analysis.intent in ("safe_refusal", "out_of_scope", "treatment_failed", "off_topic")
             else self.retriever.search(question, top_k=top_k, crop=analysis.crop)
         )
         # No LLM call when there is nothing grounded to answer from: missing
@@ -252,6 +345,21 @@ class AgenticRAG:
         else:
             answer = ""
         answer = answer or fallback_answer(question, analysis, contexts)
+        # Bộ từ khóa OFF_TOPIC_HINTS chỉ bắt được các câu hỏi lạc đề đã liệt
+        # kê trước — LLM tự nhận ra chủ đề tốt hơn nhiều so với danh sách từ
+        # khóa cố định (xem ANSWER_PROMPT). Khi LLM tự chối vì câu hỏi không
+        # liên quan, dọn sạch citations/confidence để không gắn nguồn của một
+        # bệnh không liên quan vào câu trả lời từ chối.
+        if OFF_TOPIC_REPLY in answer:
+            return RAGAnswer(
+                question=question,
+                answer=OFF_TOPIC_REPLY,
+                confidence=0.9,
+                needs_human_review=False,
+                analysis=analysis,
+                citations=[],
+                contexts=[],
+            )
         confidence = confidence_from(contexts, analysis)
         citations: list[Citation] = distinct_citations(contexts)
         return RAGAnswer(

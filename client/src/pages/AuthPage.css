@@ -51,6 +51,13 @@
   font-size: 28px;
 }
 
+.auth-brand .logo-icon-img {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
 .auth-title {
   color: var(--on-surface);
   margin: 0;

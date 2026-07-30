@@ -5,12 +5,13 @@ import ChatBubble from '../components/chat/ChatBubble';
 import PromptBar from '../components/shared/PromptBar';
 import { useLanguage } from '../context/LanguageContext';
 import { useChatHistory } from '../context/ChatHistoryContext';
+import { formatAssistantContent } from '../lib/chatFormat';
 import './ChatPage.css';
 
 const ChatPage: React.FC = () => {
   const { t } = useLanguage();
   const { chatId } = useParams();
-  const { conversations, getConversation } = useChatHistory();
+  const { conversations, getConversation, deleteConversation } = useChatHistory();
   const conversation = getConversation(chatId);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -41,7 +42,7 @@ const ChatPage: React.FC = () => {
       </div>
       
       <div className="chat-scroll-area custom-scrollbar" ref={containerRef}>
-        <div className="chat-content">
+        <div className={`chat-content ${chatId && conversation?.imageUrl ? 'is-split' : ''}`}>
           {!chatId && conversations.length > 0 && (
             <section className="chat-history-view" aria-label="Lịch sử trò chuyện">
               <h2 className="font-headline-sm">Lịch sử trò chuyện</h2>
@@ -51,7 +52,19 @@ const ChatPage: React.FC = () => {
                     {item.imageUrl && (
                       <img src={item.imageUrl} alt="Chat avatar" style={{ width: '100%', height: '120px', objectFit: 'cover', borderRadius: '8px', marginBottom: '12px' }} />
                     )}
-                    <span className="font-title-md">{item.title}</span>
+                    <div className="chat-history-card-header">
+                      <span className="font-title-md">{item.title}</span>
+                      <button 
+                        className="chat-history-delete-btn"
+                        title="Xóa đoạn chat"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          deleteConversation(item.id);
+                        }}
+                      >
+                        <span className="material-symbols-outlined">delete</span>
+                      </button>
+                    </div>
                     <span className="font-body-sm chat-history-preview">
                       {item.messages.at(-1)?.content ?? 'Chưa có tin nhắn'}
                     </span>
@@ -67,13 +80,36 @@ const ChatPage: React.FC = () => {
               <p>Chưa có cuộc trò chuyện nào. Hãy nhập câu hỏi bên dưới để bắt đầu.</p>
             </div>
           )}
-          {conversation?.messages.map((message) => (
-            <div className="message-enter" key={message.id}>
-              <ChatBubble isUser={message.role === 'user'}>
-                {message.role === 'assistant' ? `${message.content}\n\n**Nguồn tham khảo:** Hệ chuyên gia AI` : message.content}
-              </ChatBubble>
+          {chatId && conversation?.imageUrl ? (
+            <div className="chat-split-layout">
+              <div className="chat-image-panel">
+                <img src={conversation.imageUrl} alt="Uploaded" className="chat-uploaded-image" />
+              </div>
+              <div className="chat-messages-panel">
+                {conversation.messages.map((message) => (
+                  <div className="message-enter" key={message.id}>
+                    <ChatBubble isUser={message.role === 'user'}>
+                      {message.role === 'assistant'
+                        ? formatAssistantContent(message.content, message.citations, message.needsHumanReview)
+                        : message.content}
+                    </ChatBubble>
+                  </div>
+                ))}
+              </div>
             </div>
-          ))}
+          ) : (
+            <>
+              {conversation?.messages.map((message) => (
+                <div className="message-enter" key={message.id}>
+                  <ChatBubble isUser={message.role === 'user'}>
+                    {message.role === 'assistant'
+                      ? formatAssistantContent(message.content, message.citations, message.needsHumanReview)
+                      : message.content}
+                  </ChatBubble>
+                </div>
+              ))}
+            </>
+          )}
         </div>
       </div>
       
