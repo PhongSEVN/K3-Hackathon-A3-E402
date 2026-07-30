@@ -3,15 +3,13 @@ import gsap from 'gsap';
 import { useParams } from 'react-router-dom';
 import ChatBubble from '../components/chat/ChatBubble';
 import PromptBar from '../components/shared/PromptBar';
-import { useChatHistory } from '../context/ChatHistoryContext';
+import { useLanguage } from '../context/LanguageContext';
 import './ChatPage.css';
 
 const ChatPage: React.FC = () => {
+  const { t } = useLanguage();
   const containerRef = useRef<HTMLDivElement>(null);
-  const { chatId } = useParams();
-  const { conversations, getConversation } = useChatHistory();
-  const conversation = getConversation(chatId) ?? conversations[0];
-  
+
   useEffect(() => {
     if (containerRef.current) {
       const messages = containerRef.current.querySelectorAll('.message-enter');
@@ -33,7 +31,7 @@ const ChatPage: React.FC = () => {
     <div className="chat-page-container">
       <div className="chat-header">
         <div className="chat-title">
-          <span className="font-headline-md font-medium text-on-surface">{conversation?.title ?? 'Lịch sử trò chuyện'}</span>
+          <span className="font-headline-md font-medium text-on-surface">{t.chat.title}</span>
           <span className="material-symbols-outlined text-outline-variant cursor-pointer">expand_more</span>
         </div>
       </div>

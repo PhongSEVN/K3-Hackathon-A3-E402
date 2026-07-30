@@ -75,7 +75,7 @@ def analyze_question(question: str) -> QuestionAnalysis:
 def format_contexts(contexts: list[RetrievedChunk]) -> str:
     lines = []
     for index, item in enumerate(contexts, start=1):
-        source = item.citation.source_url or item.citation.relative_path
+        source = ", ".join(item.citation.source_urls) if item.citation.source_urls else item.citation.relative_path
         lines.append(
             f"[{index}] crop={item.crop}; disease={item.disease}; source={source}; "
             f"chunk={item.citation.chunk_index}\n{item.text}"
@@ -132,7 +132,8 @@ def fallback_answer(question: str, analysis: QuestionAnalysis, contexts: list[Re
 
     top = contexts[0]
     citations = "\n".join(
-        f"[{i}] {item.citation.source_file} - {item.citation.source_url or item.citation.relative_path}"
+        f"[{i}] {item.citation.source_file} - "
+        + (", ".join(item.citation.source_urls) if item.citation.source_urls else item.citation.relative_path)
         for i, item in enumerate(contexts[:3], start=1)
     )
     evidence = "\n".join(f"- {item.text[:260].strip()}..." for item in contexts[:2])
@@ -218,9 +219,22 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Ask the local Agentic RAG pipeline.")
     parser.add_argument("question")
     parser.add_argument("--top-k", type=int, default=5)
+    parser.add_argument(
+        "--backend",
+        choices=["bm25", "chroma"],
+        default="bm25",
+        help="Retriever backend: local BM25 index (default) or ChromaDB vector store.",
+    )
     args = parser.parse_args()
 
-    result = AgenticRAG().answer_question(args.question, top_k=args.top_k)
+    if args.backend == "chroma":
+        from .chroma_retriever import ChromaRetriever
+
+        retriever = ChromaRetriever()
+    else:
+        retriever = None
+
+    result = AgenticRAG(retriever=retriever).answer_question(args.question, top_k=args.top_k)
     print(json.dumps(asdict(result), ensure_ascii=False, indent=2))
 
 

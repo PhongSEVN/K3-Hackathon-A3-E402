@@ -22,7 +22,7 @@ async def register(payload: RegisterRequest, db: AsyncSession = Depends(get_db))
         name=payload.name,
     )
     token = create_access_token(subject=str(user.id))
-    return TokenResponse(access_token=token, user=UserResponse.model_validate(user))
+    return TokenResponse(access_token=token, user=UserResponse.from_user(user))
 
 
 @router.post("/login", response_model=TokenResponse)
@@ -32,4 +32,4 @@ async def login(payload: LoginRequest, db: AsyncSession = Depends(get_db)) -> To
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
 
     token = create_access_token(subject=str(user.id))
-    return TokenResponse(access_token=token, user=UserResponse.model_validate(user))
+    return TokenResponse(access_token=token, user=UserResponse.from_user(user))

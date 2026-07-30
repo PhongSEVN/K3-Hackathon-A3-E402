@@ -5,3 +5,6 @@ __pycache__/
 *.py[cod]
 *.venv
 *datasets
+rag/vectorstore/chroma/
+*.idea
+*.vscode

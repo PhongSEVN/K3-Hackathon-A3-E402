@@ -2,7 +2,8 @@ import uuid
 
 from pydantic import BaseModel, EmailStr, Field
 
-from app.models.user import UserRole
+from app.core.config import settings
+from app.models.user import User, UserRole
 
 
 class RegisterRequest(BaseModel):
@@ -24,6 +25,15 @@ class UserResponse(BaseModel):
     avatar: str | None = None
 
     model_config = {"from_attributes": True}
+
+    @classmethod
+    def from_user(cls, user: User) -> "UserResponse":
+        avatar_url = None
+        if user.avatar:
+            scheme = "https" if settings.minio_use_ssl else "http"
+            avatar_url = f"{scheme}://{settings.minio_endpoint}/{user.avatar}"
+
+        return cls(id=user.id, email=user.email, name=user.name, role=user.role, avatar=avatar_url)
 
 
 class TokenResponse(BaseModel):
