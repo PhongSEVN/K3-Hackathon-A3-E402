@@ -5,11 +5,11 @@
 - Quality bar: faithfulness >= 0.75, answer_relevancy >= 0.75, context_precision >= 0.65
 - Avg faithfulness: 1.000
 - Avg answer_relevancy: 0.989
-- Avg context_precision: 0.957
+- Avg context_precision: 0.979
 
 | id | relevancy | context precision | faithfulness | human review |
 |---|---:|---:|---:|---|
-| G01 | 1.0 | 1.0 | 1.0 | False |
+| G01 | 1.0 | 1.0 | 1.0 | True |
 | G02 | 1.0 | 1.0 | 1.0 | False |
 | G03 | 1.0 | 1.0 | 1.0 | False |
 | G04 | 1.0 | 1.0 | 1.0 | False |
@@ -17,7 +17,7 @@
 | G06 | 1.0 | 1.0 | 1.0 | False |
 | G07 | 1.0 | 1.0 | 1.0 | False |
 | G08 | 1.0 | 1.0 | 1.0 | False |
-| G09 | 1.0 | 1.0 | 1.0 | False |
+| G09 | 1.0 | 1.0 | 1.0 | True |
 | G10 | 1.0 | 1.0 | 1.0 | False |
 | G11 | 1.0 | 1.0 | 1.0 | True |
 | G12 | 1.0 | 1.0 | 1.0 | True |
@@ -31,7 +31,7 @@
 | G20 | 1.0 | 1.0 | 1.0 | True |
 | G21 | 1.0 | 1.0 | 1.0 | False |
 | G22 | 1.0 | 1.0 | 1.0 | False |
-| G23 | 1.0 | 1.0 | 1.0 | False |
+| G23 | 1.0 | 1.0 | 1.0 | True |
 | G24 | 1.0 | 1.0 | 1.0 | False |
 | G25 | 1.0 | 1.0 | 1.0 | False |
 | G26 | 1.0 | 1.0 | 1.0 | False |
@@ -43,11 +43,11 @@
 | G32 | 1.0 | 1.0 | 1.0 | True |
 | G33 | 1.0 | 1.0 | 1.0 | True |
 | G34 | 1.0 | 1.0 | 1.0 | True |
-| G35 | 1.0 | 1.0 | 1.0 | False |
+| G35 | 1.0 | 1.0 | 1.0 | True |
 | G36 | 1.0 | 1.0 | 1.0 | False |
-| R01 | 1.0 | 1.0 | 1.0 | False |
+| R01 | 1.0 | 1.0 | 1.0 | True |
 | R02 | 1.0 | 1.0 | 1.0 | True |
-| R03 | 1.0 | 0.0 | 1.0 | False |
+| R03 | 1.0 | 1.0 | 1.0 | True |
 | R04 | 1.0 | 1.0 | 1.0 | True |
 | R05 | 0.5 | 0.0 | 1.0 | False |
 | R06 | 1.0 | 1.0 | 1.0 | True |

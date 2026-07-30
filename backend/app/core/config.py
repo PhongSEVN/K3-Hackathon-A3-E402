@@ -19,7 +19,11 @@ class Settings(BaseSettings):
     minio_bucket_plant_images: str = "plant-images"
     minio_bucket_avatars: str = "avatars"
 
-    disease_classifier_path: str = "../cv/results/resnet/best_model.pth"
+    resnet50_ckpt_path: str = "../cv/resnet/runs/r50/best.pt"
+    resnet50_threshold_path: str = "../cv/resnet/runs/r50/ood_threshold.json"
+    resnet101_ckpt_path: str = "../cv/resnet/runs/r101/best.pt"
+    resnet101_threshold_path: str = "../cv/resnet/runs/r101/ood_threshold.json"
+    yolo_ckpt_path: str = "../cv/results/yolo/best.pt"
 
 
 settings = Settings()

@@ -45,3 +45,18 @@ async def list_chat_messages(
         .order_by(ChatMessage.created_at)
     )
     return list(result.scalars().all())
+
+
+async def list_recent_messages(
+    db: AsyncSession, *, user_id: uuid.UUID, session_id: uuid.UUID, limit: int = 5
+) -> list[ChatMessage]:
+    """Most recent messages in a session, oldest first — for feeding the RAG
+    prompt conversation history so follow-up questions aren't answered as if
+    the disease had never been discussed."""
+    result = await db.execute(
+        select(ChatMessage)
+        .where(ChatMessage.user_id == user_id, ChatMessage.session_id == session_id)
+        .order_by(ChatMessage.created_at.desc())
+        .limit(limit)
+    )
+    return list(reversed(result.scalars().all()))

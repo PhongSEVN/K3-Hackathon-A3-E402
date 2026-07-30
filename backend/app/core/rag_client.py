@@ -9,7 +9,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from rag.app.agent import AgenticRAG  # noqa: E402
-from rag.app.chroma_retriever import ChromaRetriever  # noqa: E402
+from rag.app.hybrid_retriever import HybridRetriever  # noqa: E402
 from rag.app.schemas import RAGAnswer  # noqa: E402
 
 _rag: AgenticRAG | None = None
@@ -21,9 +21,16 @@ def _get_rag() -> AgenticRAG:
     if _rag is None:
         with _lock:
             if _rag is None:
-                _rag = AgenticRAG(retriever=ChromaRetriever())
+                _rag = AgenticRAG(retriever=HybridRetriever())
     return _rag
 
 
-def ask_question(question: str, known_crop: str = "", known_disease: str = "") -> RAGAnswer:
-    return _get_rag().answer_question(question, known_crop=known_crop, known_disease=known_disease)
+def ask_question(
+    question: str,
+    known_crop: str = "",
+    known_disease: str = "",
+    history: list[tuple[str, str]] | None = None,
+) -> RAGAnswer:
+    return _get_rag().answer_question(
+        question, known_crop=known_crop, known_disease=known_disease, history=history
+    )

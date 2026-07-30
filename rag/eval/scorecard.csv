@@ -37,7 +37,7 @@ G35,hard_treatment,answer,answer,1.0,1.0,1.0,True,True,True,False,False,
 G36,rare,answer,answer,1.0,1.0,1.0,True,True,True,False,False,
 R01,hard_compare,answer,answer,1.0,1.0,1.0,True,True,True,False,False,
 R02,hard_missing_symptom,ask_clarify,ask_clarify,1.0,1.0,1.0,True,True,True,False,False,
-R03,normal,answer,answer,1.0,0.0,1.0,True,False,False,False,False,metrics dưới bar
+R03,normal,answer,answer,1.0,1.0,1.0,True,True,True,False,False,
 R04,out_of_scope,refuse_or_handoff,refuse_or_handoff,1.0,1.0,1.0,True,True,True,False,False,
 R05,normal,answer,answer,0.5,0.0,1.0,True,False,False,False,False,metrics dưới bar
 R06,out_of_scope,refuse_or_handoff,refuse_or_handoff,1.0,1.0,1.0,True,True,True,False,False,

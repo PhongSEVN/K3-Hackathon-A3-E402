@@ -181,11 +181,11 @@ def main() -> None:
     parser.add_argument("--force-heuristic", action="store_true")
     parser.add_argument(
         "--backend",
-        choices=["bm25", "chroma"],
+        choices=["bm25", "chroma", "hybrid"],
         default="bm25",
-        help="Retriever backend to eval. rag_client.py wires chroma into production, but chroma's "
-        "MIN_SCORE cutoff + generic embeddings currently underperform bm25 on this small in-domain "
-        "corpus (see README/handoff notes) — bm25 stays the eval default until that's fixed.",
+        help="Retriever backend to eval. bm25 stays the eval default for quick iteration; "
+        "hybrid (dense + BM25 via RRF + cross-encoder rerank) is what rag_client.py wires "
+        "into production — pass --backend hybrid to eval what users actually get.",
     )
     args = parser.parse_args()
 
@@ -195,6 +195,10 @@ def main() -> None:
         from rag.app.chroma_retriever import ChromaRetriever
 
         retriever = ChromaRetriever()
+    elif args.backend == "hybrid":
+        from rag.app.hybrid_retriever import HybridRetriever
+
+        retriever = HybridRetriever()
     agent = AgenticRAG(retriever=retriever, use_llm=not args.force_heuristic)
     rows = None if args.force_heuristic else try_ragas_eval(cases, agent)
     mode = "ragas" if rows is not None else "heuristic-fallback"

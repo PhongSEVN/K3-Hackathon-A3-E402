@@ -125,6 +125,8 @@ export interface PredictionResponse {
   image_url: string;
   predicted_label: string;
   confidence: number;
+  is_relevant: boolean;
+  reject_reason: string | null;
 }
 
 export function createPrediction(token: string, file: File): Promise<PredictionResponse> {

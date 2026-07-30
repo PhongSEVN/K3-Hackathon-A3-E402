@@ -1,19 +1,63 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { Link, useParams } from 'react-router-dom';
 import ChatBubble from '../components/chat/ChatBubble';
 import PromptBar from '../components/shared/PromptBar';
+import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
-import { useChatHistory } from '../context/ChatHistoryContext';
+import { useChatHistory, type ChatMessage } from '../context/ChatHistoryContext';
 import { formatAssistantContent } from '../lib/chatFormat';
+import { ApiError, sendChatMessage } from '../lib/api';
 import './ChatPage.css';
 
 const ChatPage: React.FC = () => {
   const { t } = useLanguage();
   const { chatId } = useParams();
-  const { conversations, getConversation, deleteConversation } = useChatHistory();
+  const { token } = useAuth();
+  const { conversations, getConversation, addConversation, deleteConversation } = useChatHistory();
   const conversation = getConversation(chatId);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [isSending, setIsSending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const sendMessage = async (question: string) => {
+    if (!token || !chatId) return;
+
+    setError(null);
+    setIsSending(true);
+    const baseMessages = conversation?.messages ?? [];
+    const userMessage: ChatMessage = { id: crypto.randomUUID(), role: 'user', content: question };
+    addConversation({
+      id: chatId,
+      title: conversation?.title ?? question,
+      updatedAt: 'Vừa xong',
+      imageUrl: conversation?.imageUrl,
+      messages: [...baseMessages, userMessage],
+    });
+
+    try {
+      const response = await sendChatMessage(token, { session_id: chatId, question });
+      const assistantMessage: ChatMessage = {
+        id: response.id,
+        role: 'assistant',
+        content: response.answer ?? '',
+        citations: response.citations,
+        confidence: response.confidence,
+        needsHumanReview: response.needs_human_review,
+      };
+      addConversation({
+        id: chatId,
+        title: conversation?.title ?? question,
+        updatedAt: 'Vừa xong',
+        imageUrl: conversation?.imageUrl,
+        messages: [...baseMessages, userMessage, assistantMessage],
+      });
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : t.home.chatError);
+    } finally {
+      setIsSending(false);
+    }
+  };
 
   useEffect(() => {
     if (containerRef.current) {
@@ -90,11 +134,13 @@ const ChatPage: React.FC = () => {
                   <div className="message-enter" key={message.id}>
                     <ChatBubble isUser={message.role === 'user'}>
                       {message.role === 'assistant'
-                        ? formatAssistantContent(message.content, message.citations, message.needsHumanReview)
+                        ? formatAssistantContent(message.content, message.citations)
                         : message.content}
                     </ChatBubble>
                   </div>
                 ))}
+                {isSending && <p className="font-label-sm text-on-surface-variant">{t.home.chatThinking}</p>}
+                {error && <p className="chat-error font-label-sm">{error}</p>}
               </div>
             </div>
           ) : (
@@ -103,18 +149,20 @@ const ChatPage: React.FC = () => {
                 <div className="message-enter" key={message.id}>
                   <ChatBubble isUser={message.role === 'user'}>
                     {message.role === 'assistant'
-                      ? formatAssistantContent(message.content, message.citations, message.needsHumanReview)
+                      ? formatAssistantContent(message.content, message.citations)
                       : message.content}
                   </ChatBubble>
                 </div>
               ))}
+              {isSending && <p className="font-label-sm text-on-surface-variant">{t.home.chatThinking}</p>}
+              {error && <p className="chat-error font-label-sm">{error}</p>}
             </>
           )}
         </div>
       </div>
-      
+
       <div className="chat-prompt-area">
-        <PromptBar />
+        <PromptBar onSubmit={sendMessage} disabled={!chatId || isSending} />
       </div>
     </div>
   );

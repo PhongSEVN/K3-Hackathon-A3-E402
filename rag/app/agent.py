@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import urllib.error
 import urllib.request
 from dataclasses import asdict
@@ -91,16 +92,29 @@ def analyze_question(
     retriever: LocalRetriever | None = None,
     known_crop: str = "",
     known_disease: str = "",
+    history: list[tuple[str, str]] | None = None,
 ) -> QuestionAnalysis:
     """`known_crop`/`known_disease` come from an already-confirmed diagnosis
     (e.g. the CV image classifier) rather than being parsed from the question
-    text. When set, the crop/symptom fields below are considered answered
-    even if the question itself is short or generic ("bệnh này chữa thế
-    nào?") — the disease is already known, there is nothing left to ask.
+    text. `history` means this isn't the first message in the session —
+    prior turns the caller will also feed into the prompt. Any of these
+    means the crop/symptom fields below are considered answered even if the
+    question itself is short or generic ("bệnh này chữa thế nào?", "liều
+    lượng thế nào?") — a short follow-up in an ongoing conversation shouldn't
+    be treated as "user forgot to say what plant/symptom", it's continuing
+    a topic already established earlier in the same session.
     """
     lowered = question.lower()
+    has_history = bool(history)
     mentioned_crops = detect_crops(question)
     crop = known_crop or detect_crop(question)
+    # Câu hỏi hiện tại không nêu cây trồng, nhưng lịch sử hội thoại có thể đã
+    # nêu ("Cho mình thuốc chữa bệnh rỉ sắt trên ngô" ở lượt trước) — dùng lại
+    # để retrieval lọc đúng crop thay vì tìm trên toàn bộ kho không giới hạn.
+    if not crop and not mentioned_crops and history:
+        history_text = " ".join(prior_question for prior_question, _ in history)
+        history_crops = detect_crops(history_text)
+        crop = history_crops[0] if len(history_crops) == 1 else detect_crop(history_text)
     # Câu hỏi nêu tên bệnh nhưng không nêu tên cây ("bệnh rỉ sắt chữa bằng thuốc
     # gì") vẫn xác định được cây khi bệnh đó chỉ có ở một cây trong kho.
     if not crop and not mentioned_crops and retriever is not None:
@@ -117,7 +131,7 @@ def analyze_question(
     missing = []
     if len(mentioned_crops) > 1 and not known_crop:
         missing.append("cây trồng cụ thể")
-    elif not crop and not out_of_scope_crops:
+    elif not crop and not out_of_scope_crops and not has_history:
         missing.append("cây trồng")
     if any(phrase in lowered for phrase in ["chưa mô tả triệu chứng", "không mô tả triệu chứng", "chưa biết bệnh"]):
         missing.append("triệu chứng cụ thể")
@@ -127,7 +141,12 @@ def analyze_question(
     vague_symptom_mention = not symptoms and not known_disease and any(
         phrase in lowered for phrase in ["triệu chứng", "biểu hiện", "dấu hiệu"]
     )
-    if not symptoms and not known_disease and (len(question.split()) < 8 or vague_symptom_mention):
+    if (
+        not symptoms
+        and not known_disease
+        and not has_history
+        and (len(question.split()) < 8 or vague_symptom_mention)
+    ):
         missing.append("triệu chứng")
 
     # Đã tự xử lý bằng thuốc cụ thể mà chưa khỏi: kho chỉ có hướng dẫn xử lý
@@ -172,6 +191,32 @@ def format_contexts(contexts: list[RetrievedChunk]) -> str:
     return "\n\n".join(lines)
 
 
+def format_history(history: list[tuple[str, str]] | None) -> str:
+    if not history:
+        return "(không có, đây là câu hỏi đầu tiên trong đoạn chat)"
+    turns = [f"Người dùng: {question}\nTrợ lý: {answer}" for question, answer in history]
+    return "\n\n".join(turns)
+
+
+def build_search_query(question: str, history: list[tuple[str, str]] | None) -> str:
+    """A follow-up like "Liều lượng như nào? Thời gian sử dụng ra sao?" has no
+    crop/disease terms of its own — searched alone it retrieves near-random
+    chunks even though analyze_question correctly stopped asking "what
+    plant?" because history already covers it. Word count is not a reliable
+    trigger here (that question is 10 words and still context-free), so
+    enrich whenever the current question itself doesn't name a crop — fold
+    in the *prior questions* only, not the answers: after 2+ generic
+    follow-ups in a row the crop/disease name may only appear in turn 1's
+    question, and assistant answers are long enough (several sentences) that
+    mixing them in dilutes the query and drifts retrieval toward a generic
+    chunk instead of the specific one. The LLM still only answers CÂU HỎI
+    HIỆN TẠI — this only widens what retrieval searches on."""
+    if history and not detect_crops(question) and not detect_crop(question):
+        prior_questions = " ".join(prior_question for prior_question, _ in history)
+        return f"{prior_questions} {question}"
+    return question
+
+
 def call_openai(prompt: str) -> str:
     load_env_file()
     api_key = os.getenv("API_KEY_OPEN_AI")
@@ -200,6 +245,24 @@ def call_openai(prompt: str) -> str:
             return raw["choices"][0]["message"]["content"].strip()
     except (urllib.error.URLError, KeyError, TimeoutError, json.JSONDecodeError):
         return ""
+
+
+_SOURCE_HEADING_RE = re.compile(r"^\s*nguồn(\s+tham\s+khảo)?\s*:?\s*$|^\s*nguồn(\s+tham\s+khảo)?\s*:", re.IGNORECASE)
+
+
+def strip_llm_source_section(answer: str) -> str:
+    """ANSWER_PROMPT tells the model not to add its own "Nguồn"/"Nguồn tham
+    khảo" section — gpt-4o-mini doesn't always obey. The system appends the
+    real, verified citations separately (see chatFormat.ts), so a
+    self-generated source list here is at best a duplicate, at worst
+    mismatched with what was actually retrieved. Cut everything from the
+    first line that looks like a source heading onward.
+    """
+    lines = answer.split("\n")
+    for index, line in enumerate(lines):
+        if _SOURCE_HEADING_RE.match(line):
+            return "\n".join(lines[:index]).rstrip()
+    return answer
 
 
 def fallback_answer(question: str, analysis: QuestionAnalysis, contexts: list[RetrievedChunk]) -> str:
@@ -317,16 +380,25 @@ class AgenticRAG:
         self.use_llm = use_llm
 
     def answer_question(
-        self, question: str, top_k: int = 5, known_crop: str = "", known_disease: str = ""
+        self,
+        question: str,
+        top_k: int = 5,
+        known_crop: str = "",
+        known_disease: str = "",
+        history: list[tuple[str, str]] | None = None,
     ) -> RAGAnswer:
         analysis = analyze_question(
-            question, retriever=self.retriever, known_crop=known_crop, known_disease=known_disease
+            question,
+            retriever=self.retriever,
+            known_crop=known_crop,
+            known_disease=known_disease,
+            history=history,
         )
         contexts = (
             []
             if analysis.missing_fields
             or analysis.intent in ("safe_refusal", "out_of_scope", "treatment_failed", "off_topic")
-            else self.retriever.search(question, top_k=top_k, crop=analysis.crop)
+            else self.retriever.search(build_search_query(question, history), top_k=top_k, crop=analysis.crop)
         )
         # No LLM call when there is nothing grounded to answer from: missing
         # required fields, a safe-refusal intent, or an empty retrieval (out
@@ -335,13 +407,22 @@ class AgenticRAG:
         # without citations (see golden set G11/G12/G19/G32/G33).
         if contexts:
             prompt = ANSWER_PROMPT.format(
+                history=format_history(history),
                 question=question,
                 crop=analysis.crop or "chưa rõ",
                 intent=analysis.intent,
+                # known_disease (không phải contexts[0].disease) — đây là bệnh
+                # đã CHẮC CHẮN xác nhận từ trước (vd CV), khác với bệnh tài
+                # liệu vừa gợi ý cho câu hỏi này. Dùng contexts[0].disease ở
+                # đây từng khiến LLM rút gọn cấu trúc cho cả câu hỏi chẩn đoán
+                # lần đầu, vì retrieval luôn trả về một bệnh "khả năng cao
+                # nhất" bất kể người dùng đã biết bệnh hay chưa.
+                confirmed_disease=known_disease or "chưa xác nhận",
                 missing_fields=", ".join(analysis.missing_fields) or "không",
                 contexts=format_contexts(contexts),
             )
             answer = call_openai(prompt) if self.use_llm else ""
+            answer = strip_llm_source_section(answer)
         else:
             answer = ""
         answer = answer or fallback_answer(question, analysis, contexts)
@@ -385,9 +466,10 @@ def main() -> None:
     parser.add_argument("--top-k", type=int, default=5)
     parser.add_argument(
         "--backend",
-        choices=["bm25", "chroma"],
+        choices=["bm25", "chroma", "hybrid"],
         default="bm25",
-        help="Retriever backend: local BM25 index (default) or ChromaDB vector store.",
+        help="Retriever backend: local BM25 index (default), ChromaDB vector store, or "
+        "hybrid (dense + BM25 via RRF, then cross-encoder rerank — what production uses).",
     )
     args = parser.parse_args()
 
@@ -395,6 +477,10 @@ def main() -> None:
         from .chroma_retriever import ChromaRetriever
 
         retriever = ChromaRetriever()
+    elif args.backend == "hybrid":
+        from .hybrid_retriever import HybridRetriever
+
+        retriever = HybridRetriever()
     else:
         retriever = None
 

@@ -38,7 +38,7 @@ async def create_prediction(
     object_name = f"{current_user.id}/{uuid.uuid4()}.{extension}"
     upload_object(settings.minio_bucket_plant_images, object_name, data, file.content_type)
 
-    predicted_label, confidence = await run_in_threadpool(predict_disease, data)
+    result = await run_in_threadpool(predict_disease, data)
 
     image_url = get_presigned_url(settings.minio_bucket_plant_images, object_name)
 
@@ -47,10 +47,17 @@ async def create_prediction(
             user_id=current_user.id,
             session_id=uuid.uuid4(),
             image=object_name,
-            predicted_id=predicted_label,
-            predicted_confident=confidence,
+            predicted_id=result["label"],
+            predicted_confident=result["confidence"],
+            is_irrelevant=not result["is_relevant"],
         )
     )
     await db.commit()
 
-    return PredictionResponse(image_url=image_url, predicted_label=predicted_label, confidence=confidence)
+    return PredictionResponse(
+        image_url=image_url,
+        predicted_label=result["label"],
+        confidence=result["confidence"],
+        is_relevant=result["is_relevant"],
+        reject_reason=result["reject_reason"],
+    )

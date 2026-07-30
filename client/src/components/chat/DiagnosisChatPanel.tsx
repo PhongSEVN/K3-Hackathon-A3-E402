@@ -95,7 +95,7 @@ const DiagnosisChatPanel: React.FC<DiagnosisChatPanelProps> = ({ diagnosis }) =>
           {messages.map((message) => (
             <ChatBubble key={message.id} isUser={message.role === 'user'}>
               {message.role === 'assistant'
-                ? formatAssistantContent(message.content, message.citations, message.needsHumanReview)
+                ? formatAssistantContent(message.content, message.citations)
                 : message.content}
             </ChatBubble>
           ))}

@@ -96,6 +96,15 @@ class PlantClassifier:
                     {"label": self.classes[plant_cols[int(j)]], "prob": float(v)}
                     for v, j in zip(topk.values, topk.indices)
                 ],
+                # Full 25-class distribution (excludes _khong_lien_quan), keyed
+                # by class name so callers can align it against another
+                # model's class order without assuming index order matches —
+                # used by backend/app/ml/disease_classifier.py to soft-vote
+                # this model against others in an ensemble.
+                "plant_probs": {
+                    self.classes[col]: float(plant_probs[j])
+                    for j, col in enumerate(plant_cols)
+                },
             })
         return out
 

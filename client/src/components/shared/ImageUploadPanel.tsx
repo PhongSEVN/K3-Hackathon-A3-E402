@@ -34,6 +34,11 @@ const ImageUploadPanel: React.FC<ImageUploadPanelProps> = ({ onPredicted }) => {
     onPredicted?.(null);
     try {
       const result = await createPrediction(token, file);
+      if (!result.is_relevant) {
+        setPredictionError(t.home.irrelevantImage);
+        onPredicted?.(null);
+        return;
+      }
       const nextPrediction: PredictionState = {
         label: result.predicted_label,
         confidence: result.confidence,

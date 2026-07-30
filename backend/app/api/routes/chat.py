@@ -7,7 +7,7 @@ from starlette.concurrency import run_in_threadpool
 
 from app.core.deps import get_current_user
 from app.core.rag_client import ask_question
-from app.crud.chat_message import create_chat_message, list_chat_messages
+from app.crud.chat_message import create_chat_message, list_chat_messages, list_recent_messages
 from app.db.session import get_db
 from app.ml.disease_labels import describe_label, get_crop_disease
 from app.models.user import User
@@ -28,7 +28,10 @@ async def send_message(
         known_crop, known_disease = get_crop_disease(payload.diease)
         question = f"{describe_label(payload.diease)} {question}"
 
-    result = await run_in_threadpool(ask_question, question, known_crop, known_disease)
+    recent = await list_recent_messages(db, user_id=current_user.id, session_id=payload.session_id, limit=5)
+    history = [(item.question, item.answer) for item in recent if item.answer]
+
+    result = await run_in_threadpool(ask_question, question, known_crop, known_disease, history)
 
     message = await create_chat_message(
         db,
