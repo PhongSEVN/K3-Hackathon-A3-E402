@@ -20,7 +20,7 @@ function PageTitle({title,subtitle,queue=false}:{title:string;subtitle:string;qu
   const navigate=useNavigate();
   return <div className="ep-title">
     <div><span className="ep-kicker"><Icon>verified_user</Icon> KHÔNG GIAN CHUYÊN GIA</span><h1 className="font-display-lg">{title}</h1><p>{subtitle}</p></div>
-    <div className="ep-actions"><button aria-label="Làm mới"><Icon>refresh</Icon></button>{!queue&&<button className="ep-primary" onClick={()=>navigate('/expert/queue')}><Icon>inbox</Icon>Xem hàng đợi</button>}</div>
+    <div className="ep-actions"><button aria-label="Làm mới"><Icon>refresh</Icon></button>{!queue&&<button className="ep-primary" onClick={()=>navigate('/agronomist/queue')}><Icon>inbox</Icon>Xem hàng đợi</button>}</div>
   </div>
 }
 
@@ -52,7 +52,7 @@ export function ExpertDashboard(){
     ].map(([icon,label,value,note])=><article className="ep-card ep-stat" key={label}><span className="ep-stat-icon"><Icon>{icon}</Icon></span><div><small>{label}</small><strong>{value}</strong><p>{note}</p></div></article>)}</div>
     <div className="ep-grid"><article className="ep-card ep-chart"><div className="ep-card-head"><div><h2>Yêu cầu trong 7 ngày</h2><p>Số ca gửi đến hệ thống</p></div><button>7 ngày qua <Icon>expand_more</Icon></button></div><div className="ep-bars">{[42,58,36,66,52,78,88].map((h,i)=><span key={i}><i style={{height:`${h}%`}}/><small>{['T2','T3','T4','T5','T6','T7','CN'][i]}</small></span>)}</div></article>
     <article className="ep-card ep-disease"><div className="ep-card-head"><div><h2>Phân bố bệnh</h2><p>Theo chẩn đoán gần đây</p></div></div><div className="ep-donut"><div><b>38</b><small>Tổng ca</small></div></div><ul><li><i/>Đạo ôn <b>34%</b></li><li><i/>Rỉ sắt <b>26%</b></li><li><i/>Mốc sương <b>22%</b></li></ul></article></div>
-    <article className="ep-card ep-recent"><div className="ep-card-head"><div><h2>Yêu cầu mới nhất</h2><p>Các ca vừa được gửi lên</p></div><button onClick={()=>navigate('/expert/queue')}>Xem tất cả <Icon>arrow_forward</Icon></button></div><CaseTable data={cases.slice(0,4)} onSelect={()=>navigate('/expert/queue')}/></article>
+    <article className="ep-card ep-recent"><div className="ep-card-head"><div><h2>Yêu cầu mới nhất</h2><p>Các ca vừa được gửi lên</p></div><button onClick={()=>navigate('/agronomist/queue')}>Xem tất cả <Icon>arrow_forward</Icon></button></div><CaseTable data={cases.slice(0,4)} onSelect={()=>navigate('/agronomist/queue')}/></article>
   </div>
 }
 
