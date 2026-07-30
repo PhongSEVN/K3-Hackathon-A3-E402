@@ -81,3 +81,50 @@
 .nav-label {
   opacity: 0;
 }
+
+.history-list {
+  display: none;
+  min-width: 224px;
+  margin: 12px 4px 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--outline-variant);
+}
+
+.history-list.visible {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.history-heading {
+  margin: 0 8px 6px;
+  color: var(--on-surface-variant);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+
+.history-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 9px 12px;
+  border-radius: 12px;
+  color: var(--on-surface-variant);
+  text-decoration: none;
+}
+
+.history-item:hover,
+.history-item.active {
+  background: var(--surface-container-high);
+  color: var(--on-surface);
+}
+
+.history-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.history-time {
+  color: var(--outline);
+}

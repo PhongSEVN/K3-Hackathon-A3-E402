@@ -17,6 +17,7 @@ const SideNavRail: React.FC = () => {
   };
 
   const handleMouseEnter = () => {
+    setIsExpanded(true);
     if (navRef.current) {
       gsap.to(navRef.current, { width: 256, duration: 0.3, ease: 'power2.out' });
       gsap.to('.nav-label', { opacity: 1, duration: 0.2, delay: 0.1 });
@@ -24,6 +25,7 @@ const SideNavRail: React.FC = () => {
   };
 
   const handleMouseLeave = () => {
+    setIsExpanded(false);
     if (navRef.current) {
       gsap.to(navRef.current, { width: 64, duration: 0.3, ease: 'power2.inOut' });
       gsap.to('.nav-label', { opacity: 0, duration: 0.1 });
@@ -52,6 +54,21 @@ const SideNavRail: React.FC = () => {
             <span className="material-symbols-outlined icon">history</span>
             <span className="font-label-md nav-label">{t.nav.history}</span>
           </NavLink>
+
+          <div className={`history-list ${isExpanded ? 'visible' : ''}`} aria-label="Lịch sử trò chuyện">
+            <p className="history-heading font-label-sm">Gần đây</p>
+            {conversations.map((conversation) => (
+              <NavLink
+                key={conversation.id}
+                to={`/chat/${conversation.id}`}
+                className={({ isActive }) => `history-item font-label-md ${isActive ? 'active' : ''}`}
+                title={conversation.title}
+              >
+                <span className="history-title">{conversation.title}</span>
+                <span className="history-time font-label-sm">{conversation.updatedAt}</span>
+              </NavLink>
+            ))}
+          </div>
 
           <NavLink to="/explore" className={({isActive}) => `nav-item ${isActive ? 'active' : ''}`}>
             <span className="material-symbols-outlined icon">explore</span>
