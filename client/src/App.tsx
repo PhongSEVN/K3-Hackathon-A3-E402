@@ -9,6 +9,7 @@ import SideNavRail from './components/layout/SideNavRail';
 import TopAppBar from './components/layout/TopAppBar';
 import RequireAuth from './components/auth/RequireAuth';
 import { AuthProvider } from './context/AuthContext';
+import { ChatHistoryProvider } from './context/ChatHistoryContext';
 import './index.css';
 import './App.css';
 
@@ -29,6 +30,7 @@ function AppShell() {
           <Route element={<RequireAuth />}>
             <Route path="/" element={<HomePage />} />
             <Route path="/chat" element={<ChatPage />} />
+            <Route path="/chat/:chatId" element={<ChatPage />} />
             <Route path="/explore" element={<ExplorePage />} />
             <Route path="/settings" element={<SettingsPage />} />
           </Route>
@@ -42,7 +44,9 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <AppShell />
+        <ChatHistoryProvider>
+          <AppShell />
+        </ChatHistoryProvider>
       </AuthProvider>
     </BrowserRouter>
   );
