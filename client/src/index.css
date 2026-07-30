@@ -56,6 +56,68 @@
   --font-headline: 'Hanken Grotesk', sans-serif;
   --font-body: 'Inter', sans-serif;
   --font-mono: 'Fira Code', monospace;
+
+  /* Frosted-glass surfaces (theme-aware) */
+  --glass-surface: rgba(255, 255, 255, 0.8);
+  --glass-border: rgba(255, 255, 255, 0.3);
+}
+
+:root[data-theme='dark'] {
+  --surface-dim: #101416;
+  --error-container: #93000a;
+  --secondary-fixed: #d4e4fe;
+  --tertiary-fixed: #ffdbce;
+  --outline: #8d9199;
+  --surface-bright: #37393c;
+  --on-error: #690005;
+  --primary-fixed-dim: #b2c5ff;
+  --surface-tint: #b2c5ff;
+  --surface-container: #1f2325;
+  --on-tertiary-container: #ffdbce;
+  --on-secondary: #26364b;
+  --surface-container-low: #171c1e;
+  --surface-container-highest: #2f3133;
+  --primary-fixed: #dae2ff;
+  --on-surface-variant: #c3c6cf;
+  --tertiary-container: #7f2b00;
+  --error: #ffb4ab;
+  --google-light-blue: #3a5c8c;
+  --on-tertiary-fixed-variant: #ffdbce;
+  --secondary-container: #3c4b62;
+  --inverse-primary: #0041a2;
+  --tertiary: #ffb599;
+  --surface-variant: #44474a;
+  --on-surface: #e2e2e5;
+  --surface-container-high: #292c2e;
+  --surface: #101416;
+  --outline-variant: #44474a;
+  --secondary: #b8c8e1;
+  --inverse-surface: #e2e2e5;
+  --on-secondary-fixed: #0c1c2f;
+  --primary: #adc6ff;
+  --on-secondary-container: #d6e3ff;
+  --on-error-container: #ffdad6;
+  --surface-container-lowest: #0b0f10;
+  --on-primary: #002e6b;
+  --inverse-on-surface: #2e3133;
+  --on-primary-fixed-variant: #adc6ff;
+  --surface-main: #121516;
+  --on-tertiary: #ffffff;
+  --primary-container: #284777;
+  --tertiary-fixed-dim: #ffb599;
+  --on-background: #e2e2e5;
+  --google-blue: #a8c7fa;
+  --text-primary: #e2e2e5;
+  --on-tertiary-fixed: #370e00;
+  --on-secondary-fixed-variant: #38485d;
+  --background: #101416;
+  --secondary-fixed-dim: #b8c8e1;
+  --on-primary-container: #d6e3ff;
+  --text-secondary: #c3c6cf;
+  --on-primary-fixed: #001847;
+
+  --glass-surface: rgba(28, 31, 33, 0.75);
+  --glass-border: rgba(255, 255, 255, 0.08);
 }
 
 body {
@@ -67,6 +129,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 * {
@@ -149,9 +212,9 @@ body {
 
 /* Utilities */
 .glass-card {
-  background: rgba(255, 255, 255, 0.7);
+  background: var(--glass-surface);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid var(--glass-border);
 }
 
 .subtle-shadow {

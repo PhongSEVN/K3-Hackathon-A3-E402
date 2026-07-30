@@ -9,6 +9,8 @@ import SideNavRail from './components/layout/SideNavRail';
 import TopAppBar from './components/layout/TopAppBar';
 import RequireAuth from './components/auth/RequireAuth';
 import { AuthProvider } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
+import { LanguageProvider } from './context/LanguageContext';
 import './index.css';
 import './App.css';
 
@@ -41,9 +43,13 @@ function AppShell() {
 function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <AppShell />
-      </AuthProvider>
+      <ThemeProvider>
+        <LanguageProvider>
+          <AuthProvider>
+            <AppShell />
+          </AuthProvider>
+        </LanguageProvider>
+      </ThemeProvider>
     </BrowserRouter>
   );
 }
