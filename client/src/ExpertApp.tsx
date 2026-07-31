@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import { getAgronomistCases, updateAgronomistCase, type AgronomistCaseResponse, type AgronomistCaseStatus } from './lib/api';
+import { DISEASE_CLASS_OPTIONS, IRRELEVANT_LABEL } from './lib/diseaseClasses';
 import './ExpertApp.css';
 
 type Status = 'pending' | 'processing' | 'responded';
@@ -45,17 +46,19 @@ function CaseTable({ data, onSelect, loading }: { data: Case[]; onSelect: (item:
 
 function Modal({ item, close, onUpdated, token }: { item: Case; close: () => void; onUpdated: (item: Case) => void; token: string }) {
   const [comment, setComment] = useState(item.comment ?? '');
-  const [diagnosis, setDiagnosis] = useState(item.confirmed_label ?? item.diagnosis);
+  const [diagnosis, setDiagnosis] = useState(item.confirmed_label ?? item.predicted_label ?? '');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   useEffect(() => { const fn = (e: KeyboardEvent) => e.key === 'Escape' && close(); addEventListener('keydown', fn); return () => removeEventListener('keydown', fn); }, [close]);
   const submit = async (event: React.FormEvent) => {
-    event.preventDefault(); setSaving(true); setError('');
+    event.preventDefault();
+    if (!diagnosis) { setError('Chọn một chẩn đoán trước khi gửi.'); return; }
+    setSaving(true); setError('');
     try { const updated = await updateAgronomistCase(token, item.id, { comment, confirmed_label: diagnosis, status: 'answered' }); onUpdated(normalizeCase(updated)); close(); }
     catch (err) { setError(err instanceof Error ? err.message : 'Không thể gửi phản hồi.'); }
     finally { setSaving(false); }
   };
-  return <div className="ep-backdrop" onMouseDown={e => e.target === e.currentTarget && close()}><section className="ep-modal" role="dialog" aria-modal="true"><header><div><small>CHI TIẾT CA BỆNH</small><h2>{item.id.slice(0, 8).toUpperCase()} · {item.crop}</h2></div><button onClick={close} aria-label="Đóng"><Icon>close</Icon></button></header><div className="ep-modal-grid"><div className="ep-case-preview">{item.image ? <img className="ep-plant-preview ep-plant-image" src={item.image} alt={`Ảnh ${item.crop}`} /> : <div className="ep-plant-preview"><Icon>image</Icon><span>Không có ảnh cây trồng</span></div>}<dl><div><dt>Người gửi</dt><dd>{item.sender}</dd></div><div><dt>Loại cây</dt><dd>{item.crop}</dd></div><div><dt>AI đề xuất</dt><dd>{item.diagnosis} · {item.confidencePercent}%</dd></div><div><dt>Trạng thái</dt><dd><StatusPill status={item.displayStatus} /></dd></div></dl></div><form className="ep-form" onSubmit={submit}><h3>Phản hồi chuyên gia</h3><p>Ý kiến của bạn sẽ được lưu vào ca bệnh.</p><label>Nhận xét chuyên môn<textarea autoFocus required value={comment} onChange={e => setComment(e.target.value)} placeholder="Mô tả tình trạng và nhận định của bạn..." /></label><label>Chẩn đoán<input value={diagnosis} onChange={e => setDiagnosis(e.target.value)} /></label>{error && <p className="ep-error">{error}</p>}<button className="ep-submit" disabled={saving}>{saving ? <><Icon>progress_activity</Icon>Đang gửi...</> : <>Gửi phản hồi<Icon>send</Icon></>}</button></form></div></section></div>;
+  return <div className="ep-backdrop" onMouseDown={e => e.target === e.currentTarget && close()}><section className="ep-modal" role="dialog" aria-modal="true"><header><div><small>CHI TIẾT CA BỆNH</small><h2>{item.id.slice(0, 8).toUpperCase()} · {item.crop}</h2></div><button onClick={close} aria-label="Đóng"><Icon>close</Icon></button></header><div className="ep-modal-grid"><div className="ep-case-preview">{item.image ? <img className="ep-plant-preview ep-plant-image" src={item.image} alt={`Ảnh ${item.crop}`} /> : <div className="ep-plant-preview"><Icon>image</Icon><span>Không có ảnh cây trồng</span></div>}<dl><div><dt>Người gửi</dt><dd>{item.sender}</dd></div><div><dt>Loại cây</dt><dd>{item.crop}</dd></div><div><dt>AI đề xuất</dt><dd>{item.diagnosis} · {item.confidencePercent}%</dd></div><div><dt>Trạng thái</dt><dd><StatusPill status={item.displayStatus} /></dd></div>{item.assignee_name && <div><dt>Đã xử lý bởi</dt><dd>{item.assignee_name}</dd></div>}</dl></div><form className="ep-form" onSubmit={submit}><h3>Phản hồi chuyên gia</h3><p>Ý kiến của bạn sẽ được lưu vào ca bệnh và gửi đến đúng đoạn chat của nông dân.</p><label>Nhận xét chuyên môn<textarea autoFocus required value={comment} onChange={e => setComment(e.target.value)} placeholder="Mô tả tình trạng và nhận định của bạn..." /></label><label>Chẩn đoán<select required value={diagnosis} onChange={e => setDiagnosis(e.target.value)}><option value="" disabled>-- Chọn chẩn đoán --</option><option value={IRRELEVANT_LABEL}>⚠ Ảnh không liên quan / không hợp lệ</option>{DISEASE_CLASS_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}</select></label>{error && <p className="ep-error">{error}</p>}<button className="ep-submit" disabled={saving}>{saving ? <><Icon>progress_activity</Icon>Đang gửi...</> : <>Gửi phản hồi<Icon>send</Icon></>}</button></form></div></section></div>;
 }
 
 function lastSevenDays(cases: Case[]) {

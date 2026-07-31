@@ -6,8 +6,9 @@ import PromptBar from '../components/shared/PromptBar';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useChatHistory, type ChatMessage } from '../context/ChatHistoryContext';
-import { formatAssistantContent } from '../lib/chatFormat';
-import { ApiError, sendChatMessage } from '../lib/api';
+import { formatAssistantContent, formatExpertReply } from '../lib/chatFormat';
+import { chatResponseToEntries } from '../lib/chatMessages';
+import { ApiError, getChatMessages, sendChatMessage } from '../lib/api';
 import './ChatPage.css';
 
 const ChatPage: React.FC = () => {
@@ -19,6 +20,34 @@ const ChatPage: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Backend is the source of truth for a session once it exists there — this
+  // is how a chuyên gia's reply (inserted directly via the agronomist route,
+  // not through this tab) shows up when the farmer reopens the thread.
+  useEffect(() => {
+    if (!token || !chatId) return;
+    let cancelled = false;
+    getChatMessages(token, chatId)
+      .then((responses) => {
+        if (cancelled || responses.length === 0) return;
+        const messages = responses.flatMap(chatResponseToEntries);
+        const existing = getConversation(chatId);
+        addConversation({
+          id: chatId,
+          title: existing?.title ?? messages.find((m) => m.role === 'user')?.content ?? 'Chat',
+          updatedAt: existing?.updatedAt ?? 'Vừa xong',
+          imageUrl: existing?.imageUrl,
+          messages,
+        });
+      })
+      .catch(() => {
+        // Best-effort sync — keep whatever is already in local history.
+      });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token, chatId]);
 
   const sendMessage = async (question: string) => {
     if (!token || !chatId) return;
@@ -134,7 +163,9 @@ const ChatPage: React.FC = () => {
                   <div className="message-enter" key={message.id}>
                     <ChatBubble isUser={message.role === 'user'}>
                       {message.role === 'assistant'
-                        ? formatAssistantContent(message.content, message.citations)
+                        ? message.answeredByName
+                          ? formatExpertReply(message.answeredByName, message.content)
+                          : formatAssistantContent(message.content, message.citations)
                         : message.content}
                     </ChatBubble>
                   </div>
@@ -149,7 +180,9 @@ const ChatPage: React.FC = () => {
                 <div className="message-enter" key={message.id}>
                   <ChatBubble isUser={message.role === 'user'}>
                     {message.role === 'assistant'
-                      ? formatAssistantContent(message.content, message.citations)
+                      ? message.answeredByName
+                        ? formatExpertReply(message.answeredByName, message.content)
+                        : formatAssistantContent(message.content, message.citations)
                       : message.content}
                   </ChatBubble>
                 </div>

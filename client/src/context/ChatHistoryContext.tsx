@@ -8,6 +8,7 @@ export interface ChatMessage {
   citations?: ChatCitation[];
   confidence?: number | null;
   needsHumanReview?: boolean;
+  answeredByName?: string | null;
 }
 
 export interface ChatHistoryItem {

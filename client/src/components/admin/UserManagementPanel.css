@@ -1,0 +1,97 @@
+.user-mgmt-card {
+  margin-top: 24px;
+}
+
+.user-mgmt-table-wrap {
+  overflow-x: auto;
+  margin: 4px 0 16px;
+}
+
+.user-mgmt-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.user-mgmt-table th {
+  text-align: left;
+  padding: 8px 12px;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--on-surface-variant);
+  border-bottom: 1px solid var(--outline-variant);
+}
+
+.user-mgmt-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--outline-variant);
+  vertical-align: middle;
+}
+
+.user-mgmt-table input,
+.user-mgmt-table select {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid var(--outline-variant);
+  border-radius: 8px;
+  background-color: var(--surface-container-low);
+  color: var(--on-surface);
+  font-size: 13px;
+}
+
+.user-mgmt-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.user-mgmt-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background-color: var(--surface-container-low);
+  color: var(--on-surface-variant);
+  font-size: 12px;
+}
+
+.user-mgmt-actions button:hover:not(:disabled) {
+  background-color: var(--surface-container-high);
+}
+
+.user-mgmt-actions button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.user-mgmt-password-input {
+  min-width: 220px;
+}
+
+.user-mgmt-add-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 8px;
+  padding: 16px;
+  border-radius: 16px;
+  background-color: var(--surface-container-low);
+}
+
+.user-mgmt-add-form input,
+.user-mgmt-add-form select {
+  padding: 10px 12px;
+  border: 1px solid var(--outline-variant);
+  border-radius: 10px;
+  background-color: var(--surface-container-lowest);
+  color: var(--on-surface);
+}
+
+.user-mgmt-add-form-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}

@@ -28,3 +28,7 @@ export function formatAssistantContent(content: string, citations: ChatCitation[
 
   return `${content}\n\n**Nguồn tham khảo:**\n${lines.join('\n')}`;
 }
+
+export function formatExpertReply(answeredByName: string, content: string): string {
+  return `**🧑‍🌾 Chuyên gia ${answeredByName} đã phản hồi:**\n\n${content}`;
+}

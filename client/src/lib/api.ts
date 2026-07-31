@@ -101,6 +101,11 @@ export function changePassword(
 
 export interface AdminStatsResponse {
   dataset_size: number;
+  by_class: Record<string, number>;
+  pending_review: number;
+  new_since_last_retrain: number;
+  last_retrain_at: string | null;
+  last_retrain_by: string | null;
 }
 
 export interface RetrainResponse {
@@ -121,6 +126,42 @@ export function triggerRetrain(token: string): Promise<RetrainResponse> {
   });
 }
 
+export function getAdminUsers(token: string): Promise<UserResponse[]> {
+  return request<UserResponse[]>('/admin/users', {
+    headers: authHeaders(token),
+  });
+}
+
+export function createAdminUser(
+  token: string,
+  payload: { email: string; password: string; name: string; role: UserRole }
+): Promise<UserResponse> {
+  return request<UserResponse>('/admin/users', {
+    method: 'POST',
+    headers: { ...authHeaders(token), 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+}
+
+export function updateAdminUser(
+  token: string,
+  userId: string,
+  payload: { name?: string; role?: UserRole; password?: string }
+): Promise<UserResponse> {
+  return request<UserResponse>(`/admin/users/${userId}`, {
+    method: 'PATCH',
+    headers: { ...authHeaders(token), 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+}
+
+export function deleteAdminUser(token: string, userId: string): Promise<void> {
+  return request<void>(`/admin/users/${userId}`, {
+    method: 'DELETE',
+    headers: authHeaders(token),
+  });
+}
+
 export interface PredictionResponse {
   image_url: string;
   predicted_label: string;
@@ -129,9 +170,10 @@ export interface PredictionResponse {
   reject_reason: string | null;
 }
 
-export function createPrediction(token: string, file: File): Promise<PredictionResponse> {
+export function createPrediction(token: string, file: File, sessionId: string): Promise<PredictionResponse> {
   const formData = new FormData();
   formData.append('file', file);
+  formData.append('session_id', sessionId);
 
   return request<PredictionResponse>('/predictions', {
     method: 'POST',
@@ -151,6 +193,8 @@ export interface AgronomistCaseResponse {
   confidence: number | null;
   confirmed_label: string | null;
   comment: string | null;
+  is_irrelevant: boolean;
+  assignee_name: string | null;
   status: AgronomistCaseStatus;
   priority: AgronomistCasePriority;
   created_at: string;
@@ -166,7 +210,7 @@ export function getAgronomistCases(token: string): Promise<AgronomistCaseRespons
 export function updateAgronomistCase(
   token: string,
   caseId: string,
-  payload: { comment: string; confirmed_label: string | null; status: AgronomistCaseStatus }
+  payload: { comment: string; confirmed_label: string; status: AgronomistCaseStatus }
 ): Promise<AgronomistCaseResponse> {
   return request<AgronomistCaseResponse>(`/agronomist/cases/${caseId}`, {
     method: 'PATCH',
@@ -191,6 +235,7 @@ export interface ChatMessageResponse {
   citations: ChatCitation[];
   confidence: number | null;
   needs_human_review: boolean;
+  answered_by_name: string | null;
   created_at: string;
 }
 

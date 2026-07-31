@@ -3,8 +3,9 @@ import ChatBubble from './ChatBubble';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { useChatHistory, type ChatMessage } from '../../context/ChatHistoryContext';
-import { ApiError, sendChatMessage } from '../../lib/api';
-import { formatAssistantContent } from '../../lib/chatFormat';
+import { ApiError, getChatMessages, sendChatMessage } from '../../lib/api';
+import { formatAssistantContent, formatExpertReply } from '../../lib/chatFormat';
+import { chatResponseToEntries } from '../../lib/chatMessages';
 import './DiagnosisChatPanel.css';
 
 export interface DiagnosisInfo {
@@ -16,14 +17,14 @@ export interface DiagnosisInfo {
 type ChatEntry = ChatMessage;
 
 interface DiagnosisChatPanelProps {
+  sessionId: string;
   diagnosis: DiagnosisInfo | null;
 }
 
-const DiagnosisChatPanel: React.FC<DiagnosisChatPanelProps> = ({ diagnosis }) => {
+const DiagnosisChatPanel: React.FC<DiagnosisChatPanelProps> = ({ sessionId, diagnosis }) => {
   const { token } = useAuth();
   const { t } = useLanguage();
   const { addConversation } = useChatHistory();
-  const sessionIdRef = useRef(crypto.randomUUID());
   const handledImageRef = useRef<string | null>(null);
 
   const [messages, setMessages] = useState<ChatEntry[]>([]);
@@ -40,7 +41,7 @@ const DiagnosisChatPanel: React.FC<DiagnosisChatPanelProps> = ({ diagnosis }) =>
     setMessages((prev) => [...prev, userMessage]);
     try {
       const response = await sendChatMessage(token, {
-        session_id: sessionIdRef.current,
+        session_id: sessionId,
         question,
         diease: diagnosis?.label,
         image: diagnosis?.imageUrl,
@@ -56,7 +57,7 @@ const DiagnosisChatPanel: React.FC<DiagnosisChatPanelProps> = ({ diagnosis }) =>
       setMessages((prev) => {
         const nextMessages = [...prev, assistantMessage];
         addConversation({
-          id: sessionIdRef.current,
+          id: sessionId,
           title: diagnosis?.label ? `Tư vấn ${diagnosis.label.replaceAll('_', ' ')}` : 'Chat mới',
           updatedAt: 'Vừa xong',
           imageUrl: diagnosis?.imageUrl,
@@ -71,12 +72,31 @@ const DiagnosisChatPanel: React.FC<DiagnosisChatPanelProps> = ({ diagnosis }) =>
     }
   };
 
+  // The backend saves a chat message as soon as a diagnosis comes back (see
+  // predictions.py), not only once the farmer asks a follow-up — fetch that
+  // now so the conversation is in history immediately, findable later even
+  // if the farmer never types anything else.
   useEffect(() => {
-    if (!diagnosis || handledImageRef.current === diagnosis.imageUrl) return;
+    if (!diagnosis || !token || handledImageRef.current === diagnosis.imageUrl) return;
     handledImageRef.current = diagnosis.imageUrl;
-    // User will now manually type and send their question
+    getChatMessages(token, sessionId)
+      .then((responses) => {
+        const initialMessages = responses.flatMap(chatResponseToEntries);
+        if (initialMessages.length === 0) return;
+        setMessages(initialMessages);
+        addConversation({
+          id: sessionId,
+          title: `Tư vấn ${diagnosis.label.replaceAll('_', ' ')}`,
+          updatedAt: 'Vừa xong',
+          imageUrl: diagnosis.imageUrl,
+          messages: initialMessages,
+        });
+      })
+      .catch(() => {
+        // Best-effort — the farmer can still ask a question manually.
+      });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [diagnosis?.imageUrl]);
+  }, [diagnosis?.imageUrl, token]);
 
   const canSend = inputValue.trim().length > 0 && !!diagnosis?.imageUrl;
 
@@ -95,7 +115,9 @@ const DiagnosisChatPanel: React.FC<DiagnosisChatPanelProps> = ({ diagnosis }) =>
           {messages.map((message) => (
             <ChatBubble key={message.id} isUser={message.role === 'user'}>
               {message.role === 'assistant'
-                ? formatAssistantContent(message.content, message.citations)
+                ? message.answeredByName
+                  ? formatExpertReply(message.answeredByName, message.content)
+                  : formatAssistantContent(message.content, message.citations)
                 : message.content}
             </ChatBubble>
           ))}

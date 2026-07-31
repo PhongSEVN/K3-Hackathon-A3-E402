@@ -10,6 +10,10 @@ const HomePage: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const { t } = useLanguage();
   const [diagnosis, setDiagnosis] = useState<DiagnosisInfo | null>(null);
+  // Shared across the upload panel and the chat panel so a case an
+  // agronomist reviews (keyed by this same session_id in Feedback) can send
+  // their reply into this exact chat thread.
+  const sessionIdRef = useRef(crypto.randomUUID());
 
   useEffect(() => {
     if (containerRef.current) {
@@ -36,10 +40,10 @@ const HomePage: React.FC = () => {
 
         <div className="split-panels animate-item">
           <div className="split-panel split-panel-upload">
-            <ImageUploadPanel onPredicted={setDiagnosis} />
+            <ImageUploadPanel sessionId={sessionIdRef.current} onPredicted={setDiagnosis} />
           </div>
           <div className="split-panel split-panel-prompt">
-            <DiagnosisChatPanel diagnosis={diagnosis} />
+            <DiagnosisChatPanel sessionId={sessionIdRef.current} diagnosis={diagnosis} />
           </div>
         </div>
       </div>

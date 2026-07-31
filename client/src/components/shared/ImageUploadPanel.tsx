@@ -11,10 +11,11 @@ interface PredictionState {
 }
 
 interface ImageUploadPanelProps {
+  sessionId: string;
   onPredicted?: (prediction: PredictionState | null) => void;
 }
 
-const ImageUploadPanel: React.FC<ImageUploadPanelProps> = ({ onPredicted }) => {
+const ImageUploadPanel: React.FC<ImageUploadPanelProps> = ({ sessionId, onPredicted }) => {
   const { t } = useLanguage();
   const { token } = useAuth();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -33,7 +34,7 @@ const ImageUploadPanel: React.FC<ImageUploadPanelProps> = ({ onPredicted }) => {
     setPredictionError(null);
     onPredicted?.(null);
     try {
-      const result = await createPrediction(token, file);
+      const result = await createPrediction(token, file, sessionId);
       if (!result.is_relevant) {
         setPredictionError(t.home.irrelevantImage);
         onPredicted?.(null);
